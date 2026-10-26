@@ -7,6 +7,7 @@ export interface StoredRun {
   createdAt: string;
   status: ApprovalStatus;
   output: unknown;
+  cost?: import("@/types/run").CostNote;
 }
 
 const MAX_RUNS = 20;

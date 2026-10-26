@@ -23,6 +23,8 @@ export class ProviderError extends Error {
   constructor(
     message: string,
     readonly rawText?: string,
+    readonly category?: string,
+    readonly safeMessage?: string,
   ) {
     super(message);
     this.name = "ProviderError";
@@ -71,6 +73,7 @@ export function availableProviders(policy: Settings["dataPolicy"], env: Env = pr
 }
 
 interface StructuredArgs<T> {
+  signal?: AbortSignal;
   schema: ZodType<T>;
   system: string;
   prompt: string;
@@ -86,6 +89,8 @@ export async function generateStructured<T>(args: StructuredArgs<T>): Promise<{ 
   const providers = args.providers ?? availableProviders(args.policy ?? "cloud-ok");
   let rawText: string | undefined;
   let lastError = "No AI provider is configured.";
+  let quota = false;
+  let retryHint = "";
 
   for (const provider of providers) {
     let waited = false;
@@ -101,7 +106,7 @@ export async function generateStructured<T>(args: StructuredArgs<T>): Promise<{ 
           maxOutputTokens: provider.maxOutputTokens,
           providerOptions: provider.providerOptions,
           maxRetries: 0,
-          abortSignal: AbortSignal.timeout(provider.timeoutMs),
+          abortSignal: args.signal ? AbortSignal.any([args.signal, AbortSignal.timeout(provider.timeoutMs)]) : AbortSignal.timeout(provider.timeoutMs),
         });
         const usage = result.totalUsage ?? result.usage;
         return {
@@ -109,6 +114,8 @@ export async function generateStructured<T>(args: StructuredArgs<T>): Promise<{ 
           cost: estimateCost(provider.name, provider.model, usage.inputTokens ?? 0, usage.outputTokens ?? 0),
         };
       } catch (error) {
+        quota ||= error instanceof APICallError && error.statusCode === 429;
+        if(error instanceof APICallError && error.statusCode===429){const seconds=Number(error.responseHeaders?.["retry-after"]);if(Number.isFinite(seconds)&&seconds>0&&seconds<=86400)retryHint=` A provider suggests retrying in ${Math.ceil(seconds)} seconds.`;}
         lastError = error instanceof Error ? error.message : String(error);
         // A free tier's per-minute limit often clears in seconds: wait once rather than drop to a slower model.
         const pause = !waited ? shortRetryAfter(error) : null;
@@ -123,7 +130,7 @@ export async function generateStructured<T>(args: StructuredArgs<T>): Promise<{ 
       }
     }
   }
-  throw new ProviderError(lastError, rawText);
+  throw new ProviderError(lastError, rawText, quota ? "provider_quota" : "providers_failed", quota ? "AI quota reached and no fallback completed. Wait for quota recovery or choose local Ollama, then retry generation." + retryHint : "No AI model completed the report. Check model availability, then retry generation.");
 }
 
 const MAX_RATE_LIMIT_WAIT_MS = 20_000;

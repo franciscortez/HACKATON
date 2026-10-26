@@ -25,7 +25,9 @@ export interface RunContext {
   now: Date;
   /** AI providers in fallback order, already filtered by the data policy. */
   providers: ProviderEntry[];
+  signal?: AbortSignal;
   onProgress?: (progress: RunProgress) => void;
+  onResearch?: (event: { token: string; companyUrl: string; collectedAt: string; usage: import("@/services/research/types").ResearchUsage }) => void;
 }
 
 export interface RunResult<O> {

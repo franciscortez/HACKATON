@@ -1,0 +1,53 @@
+"use client";
+import { useState } from "react";
+import Image from "next/image";
+import type { DossierOutput, Dossier, CallSheet } from "../schemas/dossier.schema";
+import type { Fact } from "../schemas/brief.schema";
+import { editDossier, rebuildCallSheet } from "../services/dossier";
+import { capabilities } from "../services/capabilities";
+
+export function DossierReview({ output, onChange }: { output: DossierOutput; onChange: (output: DossierOutput) => void }) {
+  const [editing, setEditing] = useState(false), [sheetEditing, setSheetEditing] = useState(false);
+  const [selected, setSelected] = useState<Fact | null>(null), [previewFailed, setPreviewFailed] = useState(false);
+  const source = output.sources.find(s => s.id === selected?.sourceId);
+  const change = (dossier: Dossier, section: string) => onChange({ ...editDossier(output, dossier), editedSections: [...new Set([...output.editedSections, section])] });
+  const changeSheet = (callSheet: CallSheet) => onChange({ ...output, callSheet, editedSections: [...new Set([...output.editedSections, "callSheet"])] });
+  const evidence = (fact: Fact, label: string) => <details className="dossier-evidence-inline" onToggle={e => { if (e.currentTarget.open) setSelected(fact); }}><summary>Evidence for {label}</summary><blockquote>{fact.quote}</blockquote><a href={output.sources.find(s => s.id === fact.sourceId)?.url} target="_blank" rel="noopener noreferrer">Open source {fact.sourceId}</a></details>;
+  const facts = (title: string, items: Fact[], key?: "services" | "audience" | "positioning" | "tone") => <section className="dossier-section"><h3>{title}</h3>{items.length ? <ul className="dossier-facts">{items.map((fact, i) => <li key={i}>
+    {editing && key ? <textarea aria-label={`${title} ${i + 1}`} rows={2} maxLength={240} value={fact.text} onChange={e => change({ ...output.dossier, [key]: items.map((f, j) => j === i ? { ...f, text: e.target.value } : f) }, key)} /> : <p>{fact.text}</p>}
+    <span className="dossier-note">{key && output.editedSections.includes(key) ? "User-reviewed notes" : "Source extract"}</span>{evidence(fact, `${title.toLowerCase()} ${i + 1}`)}
+  </li>)}</ul> : <p className="dossier-muted">Not established in the collected pages. Confirm during the call.</p>}</section>;
+  return <div className="dossier-layout">
+    <article className="dossier-paper" aria-label="Business dossier">
+      <header className="dossier-report-header"><div><p className="dossier-note">Business dossier · {new Date(output.generatedAt).toLocaleDateString("en-AU")}</p><h2>{output.companyName?.text ?? "Business details"}</h2><p className="dossier-muted">{[output.city?.text, output.industry?.text].filter(Boolean).join(" · ") || "Location and industry not established"}</p></div><button type="button" className="dossier-secondary" onClick={() => setEditing(!editing)}>{editing ? "Finish editing" : "Edit dossier"}</button></header>
+      <section className="dossier-section"><h3>The business at a glance</h3><p className="dossier-note">{output.editedSections.includes("summary") ? "User-reviewed summary" : "Synthesis · check against the sources"}</p>{editing ? <textarea aria-label="Business summary" rows={5} maxLength={1200} value={output.dossier.summary} onChange={e => change({ ...output.dossier, summary: e.target.value }, "summary")} /> : <p className="dossier-intro">{output.dossier.summary}</p>}</section>
+      {facts("Services and products", output.dossier.services, "services")}
+      {facts("Who they serve", output.dossier.audience, "audience")}
+      {facts("Positioning and proof", output.dossier.positioning, "positioning")}
+      {facts("Company facts", output.companyFacts)}
+      <section className="dossier-section"><h3>Website brand</h3><p className="dossier-muted">Observed on their website. These are not official brand guidelines.</p>
+        {output.brand.preview && !previewFailed ? <figure className="dossier-preview"><Image unoptimized src={output.brand.preview} alt="Captured public website homepage" width={1440} height={1000} onError={() => setPreviewFailed(true)} /><figcaption>Website snapshot · {new Date(output.generatedAt).toLocaleDateString("en-AU")}</figcaption></figure> : <p className="dossier-empty-note">{previewFailed ? "Saved website preview is no longer available. The research remains below." : "No rendered website preview available for this research."}</p>}
+        <div className="dossier-brand-grid"><div><h4>Observed colours</h4>{output.brand.colors.length ? <ul className="dossier-colors">{output.brand.colors.map((o, i) => <li key={i}><span className="dossier-swatch" style={{ backgroundColor: o.value }} aria-hidden="true" /><div><p>{o.value}</p><span className="dossier-note">{o.role} · {o.selector} · {o.sourceId}</span></div></li>)}</ul> : <p className="dossier-muted">Colours unavailable.</p>}</div><div><h4>Font families</h4>{output.brand.fonts.length ? output.brand.fonts.map((o, i) => <div className="dossier-font" key={i}><p>{o.value}</p><span className="dossier-note">{o.role} · {o.selector} · {o.sourceId}</span></div>) : <p className="dossier-muted">Fonts unavailable.</p>}</div></div>
+        <h4>Logo and imagery</h4><p>{output.brand.logo?.value ?? "No logo image identified. A text or SVG wordmark may still be present."}</p>
+        {output.brand.imagery.map((o, i) => <p className="dossier-note" key={i}>{o.value} · {o.sourceId}</p>)}
+        {output.brand.actions.length > 0 && <><h4>Links and calls to action</h4><ul>{output.brand.actions.map((o, i) => <li key={i}>{o.value} <span className="dossier-note">({o.sourceId})</span></li>)}</ul></>}
+      </section>
+      {facts("Messaging and voice", output.dossier.tone, "tone")}
+      <section className="dossier-section"><h3>Where Leveric could help</h3><p className="dossier-muted">Possible opportunities. Validate the need before pitching a solution.</p>
+        {output.dossier.opportunities.length ? output.dossier.opportunities.map((o, i) => <div className="dossier-opportunity" key={i}><h4>{capabilities.find(c => c.id === o.capabilityId)?.name ?? "Discovery opportunity"}</h4><p><strong>Observed:</strong> {o.observation.text}</p>{evidence(o.observation, `opportunity ${i + 1}`)}
+          {editing ? <><label>Possible need<textarea aria-label={`Possible need ${i + 1}`} maxLength={300} rows={3} value={o.hypothesis} onChange={e => change({ ...output.dossier, opportunities: output.dossier.opportunities.map((v, j) => j === i ? { ...v, hypothesis: e.target.value } : v) }, "opportunities")} /></label><label>Ask on the call<textarea aria-label={`Discovery question ${i + 1}`} rows={2} maxLength={180} value={o.question} onChange={e => change({ ...output.dossier, opportunities: output.dossier.opportunities.map((v, j) => j === i ? { ...v, question: e.target.value } : v) }, "opportunities")} /></label></> : <><p><strong>Possible need:</strong> {o.hypothesis}</p><p className="dossier-question">{o.question}</p></>}
+        </div>) : <p className="dossier-empty-note">Not enough evidence for a specific pitch. Start with discovery questions.</p>}
+      </section>
+      <section className="dossier-section"><h3>What to confirm</h3>{output.gaps.length ? <ul className="dossier-gaps">{output.gaps.map((g, i) => <li key={i}>{g}</li>)}</ul> : <p>No additional gaps were recorded. Validate the findings during the call.</p>}</section>
+      <section className="dossier-section dossier-call-sheet" aria-label="Call sheet"><div className="dossier-report-header"><h3>Your call sheet</h3><button type="button" className="dossier-secondary" onClick={() => setSheetEditing(!sheetEditing)}>{sheetEditing ? "Finish call edits" : "Edit call sheet"}</button></div>
+        {output.callSheetStale && <div className="dossier-stale" role="status"><strong>Call sheet needs rebuilding</strong><p>Dossier edits are not reflected below. Rebuilding replaces your earlier call-sheet edits.</p><button type="button" className="dossier-secondary" onClick={() => onChange(rebuildCallSheet(output, output.companyName?.text ?? "Business", output.gaps))}>Rebuild call sheet</button></div>}
+        {sheetEditing ? <><label>Call summary<textarea aria-label="Call summary" rows={5} maxLength={1200} value={output.callSheet.summary} onChange={e => changeSheet({ ...output.callSheet, summary: e.target.value })} /></label><label>Call opener<textarea aria-label="Call opener" rows={2} maxLength={300} value={output.callSheet.opener} onChange={e => changeSheet({ ...output.callSheet, opener: e.target.value })} /></label>{output.callSheet.talkingPoints.map((t, i) => <label key={i}>Talking point {i + 1}<textarea aria-label={`Talking point ${i + 1}`} rows={3} maxLength={600} value={t} onChange={e => changeSheet({ ...output.callSheet, talkingPoints: output.callSheet.talkingPoints.map((v, j) => j === i ? e.target.value : v) })} /></label>)}{output.callSheet.questions.map((q, i) => <label key={i}>Question {i + 1}<textarea aria-label={`Call question ${i + 1}`} rows={2} maxLength={200} value={q} onChange={e => changeSheet({ ...output.callSheet, questions: output.callSheet.questions.map((v, j) => j === i ? e.target.value : v) })} /></label>)}</> : <><p>{output.callSheet.summary}</p><h4>Open the conversation</h4><p className="dossier-question">{output.callSheet.opener}</p><h4>Possible opportunities</h4><ul className="dossier-gaps">{output.callSheet.talkingPoints.map((t, i) => <li key={i}>{t}</li>)}</ul><h4>Ask and confirm</h4><ul className="dossier-gaps">{output.callSheet.questions.map((q, i) => <li key={i}>{q}</li>)}</ul></>}
+      </section>
+    </article>
+    <aside className="dossier-rail" aria-label="Research evidence"><h3>Behind the brief</h3><p className="dossier-muted">{output.sources.length} {output.sources.length === 1 ? "page" : "pages"} collected. Select evidence beside a claim to inspect it here.</p>
+      {selected && <div className="dossier-selected" aria-live="polite"><h4>Original source extract</h4><blockquote>{selected.quote}</blockquote>{source && <a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}</a>}</div>}
+      <h4>Collected sources</h4><ol className="dossier-sources">{output.sources.map(s => <li key={s.id}><a href={s.url} target="_blank" rel="noopener noreferrer">{s.title || new URL(s.url).hostname}</a><p className="dossier-note">{s.id} · {s.origin} · {new Date(s.fetchedAt).toLocaleDateString("en-AU")}</p><details><summary>Read captured text</summary><p className="dossier-source-text">{s.text}</p></details></li>)}</ol>
+      <p className="dossier-note">Source extracts are published claims, not independent fact checks. Your edits do not change the original evidence.</p>
+    </aside>
+  </div>;
+}

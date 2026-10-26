@@ -92,3 +92,11 @@ Each feature's `index.ts` exports one object that matches the shared contract in
 - No server-side history.
 - Ollama works only when the app runs on a machine with Ollama, not on Vercel.
 - Free-tier limits can change without notice.
+
+## 10. Website research
+
+Tool 03 follows the single-workspace settings contract and shares the streamed run endpoint with Tool 01. RunContext retains progress and adds cancellation plus a research-collection callback. Research settings hold enabled/maxRunUsd/runsPerMonth; the browser count remains advisory.
+
+Shared services own guarded Apify collection, preview signing, recovery signing and native Ollama structured generation. Feature services own evidence-unit selection and dossier composition. The optional local/auto AI choice defaults to local for research only. The native local adapter leaves Tool 01's existing provider chain unchanged.
+
+The stream emits a signed research snapshot before generation. It includes collected sources, observed branding, original URL/time and usage. HMAC signing uses the Apify key with a recovery-specific domain separator and 24-hour expiry; the browser stores the opaque token. A verified retry goes straight to generation. No database or new storage infrastructure is introduced. Original browser history keys remain intact, with labelled legacy demo reports copied to workspace history on edit.

@@ -54,6 +54,12 @@ Free-tier model names change often. Keep them in one file (`lib/ai/models.ts`) a
 - `.env.example` lists names with empty values.
 - No keys in client JSON, logs, exports or the handover.
 
+### Tool 03 research
+
+Uses native server-side `fetch` to the official Apify Playwright Scraper. A fixed page function extracts rendered text, semantic HTML and observed branding; hooks check network destinations before navigation. Actor scripts use Node 24 `process.getBuiltinModule` because the Actor VM does not support dynamic imports. No new app dependency. URL-only runs replace external contact/competitor searches. Six pages, concurrency one, no retries, 120-second Actor timeout and a four-minute request deadline bound work; US$0.10 is a target, not a guaranteed monetary cap for this pay-per-usage Actor. `APIFY_API_KEY` stays in ignored `.env.local` and hosting variables. Screenshot references are signed, expire after seven days and serve only JPEG records from the run through a restricted REST endpoint.
+
+Developer Apify MCP 0.19.3 is installed outside the app on this machine. Its launcher loads `.env.local` explicitly and maps `APIFY_API_KEY` to `APIFY_TOKEN`; the token is absent from MCP configuration and command arguments. A new agent session may be required to expose newly registered tools.
+
 ## What is not in the stack (phase 1)
 - No database, auth or payments. Add Supabase later if tools need shared history across users.
 - No automatic sending (email, Slack, Asana). Exports are copy or download only. Integrations come after approval flows are proven.
@@ -76,3 +82,6 @@ Free-tier model names change often. Keep them in one file (`lib/ai/models.ts`) a
 | Groq model | `openai/gpt-oss-120b` (reasoning effort low, 8k output cap) |
 | Gemini model | `gemini-2.5-flash` (thinking budget 1024, 8k output cap) |
 | Local model | `qwen2.5:7b-instruct` in Ollama 0.40.11 (Vulkan, 16k context, 2k output cap) |
+
+
+Tool 03 defaults to native Ollama `/api/chat` with JSON-schema format, explicit 8192-token context and 2500-token output bound. It uses the existing model and server URL (normalising the legacy `/v1` suffix), without changing Tool 01's OpenAI-compatible provider. Cloud Auto is opt-in. Browser recovery is stateless, HMAC-signed and retained for 24 hours; no new dependency or database is required.

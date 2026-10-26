@@ -20,7 +20,7 @@ function reply(text: string) {
   });
 }
 
-function rateLimited() {
+function rateLimited(retryAfter?: string) {
   return new MockLanguageModelV4({
     doGenerate: async () => {
       throw new APICallError({
@@ -28,6 +28,7 @@ function rateLimited() {
         url: "https://api.groq.com",
         requestBodyValues: {},
         statusCode: 429,
+        responseHeaders: retryAfter ? {"retry-after": retryAfter} : undefined,
         isRetryable: true,
       });
     },
@@ -163,4 +164,12 @@ describe("generateStructured", () => {
   it("throws ProviderError when no provider is available", async () => {
     await expect(generateStructured({ schema, system: "s", prompt: "p", providers: [] })).rejects.toBeInstanceOf(ProviderError);
   });
+});
+
+it("retains a safe quota category when no provider succeeds", async () => {
+ await expect(generateStructured({schema,system:"test",prompt:"test",providers:[entry("groq",rateLimited())]})).rejects.toMatchObject({category:"provider_quota",safeMessage:expect.stringContaining("quota")});
+});
+
+it("reports an available long retry hint without waiting or exposing raw errors",async()=>{
+ await expect(generateStructured({schema,system:"test",prompt:"test",providers:[entry("groq",rateLimited("60"))]})).rejects.toMatchObject({safeMessage:expect.stringContaining("60 seconds")});
 });

@@ -1,0 +1,157 @@
+{
+  "output": {
+    "companyName": {
+      "text": "Example Accounting",
+      "sourceId": "s1",
+      "quote": "Example Accounting"
+    },
+    "city": {
+      "text": "Geelong",
+      "sourceId": "s1",
+      "quote": "Geelong"
+    },
+    "industry": {
+      "text": "accounting",
+      "sourceId": "s1",
+      "quote": "accounting"
+    },
+    "companyFacts": [
+      {
+        "text": "Founded in 2008",
+        "sourceId": "s1",
+        "quote": "Founded in 2008"
+      }
+    ],
+    "contactFacts": [
+      {
+        "text": "Priya Shah leads the team",
+        "sourceId": "s1",
+        "quote": "Priya Shah leads the team"
+      }
+    ],
+    "likelyNeeds": [
+      {
+        "text": "Explore client onboarding automation",
+        "sourceIds": [
+          "s1"
+        ]
+      }
+    ],
+    "competitors": [
+      {
+        "name": "Bay Accounting",
+        "text": "Accounting services in Geelong",
+        "city": "Geelong",
+        "industry": "accounting",
+        "sourceId": "s2",
+        "quote": "Bay Accounting provides accounting services in Geelong"
+      }
+    ],
+    "talkingPoints": [
+      "How do you organise client onboarding?"
+    ],
+    "gaps": [
+      "Team size is not publicly stated."
+    ],
+    "sources": [
+      {
+        "id": "s1",
+        "url": "https://example.com/",
+        "title": "Example Accounting",
+        "text": "Example Accounting is an accounting firm in Geelong. Founded in 2008. Priya Shah leads the team.",
+        "fetchedAt": "2026-10-26T00:00:00.000Z",
+        "origin": "web"
+      },
+      {
+        "id": "s2",
+        "url": "https://example.org/",
+        "title": "Bay Accounting",
+        "text": "Bay Accounting provides accounting services in Geelong.",
+        "fetchedAt": "2026-10-26T00:00:00.000Z",
+        "origin": "web"
+      }
+    ],
+    "objective": "Explore automation",
+    "contact": "Priya Shah",
+    "generatedAt": "2026-10-26T00:00:00.000Z",
+    "schemaVersion": 2,
+    "callSheetStale": false,
+    "editedSections": [],
+    "dossier": {
+      "summary": "Example Accounting supports businesses in Geelong with accounting services.",
+      "services": [
+        {
+          "text": "accounting firm",
+          "quote": "Example Accounting is an accounting firm in Geelong.",
+          "sourceId": "s1"
+        }
+      ],
+      "audience": [],
+      "positioning": [],
+      "tone": [],
+      "opportunities": [
+        {
+          "capabilityId": "workflow-automation",
+          "observation": {
+            "text": "accounting firm",
+            "quote": "Example Accounting is an accounting firm in Geelong.",
+            "sourceId": "s1"
+          },
+          "hypothesis": "Explore whether repetitive client onboarding could be streamlined.",
+          "question": "Where does onboarding require repeated manual work?"
+        }
+      ]
+    },
+    "brand": {
+      "colors": [
+        {
+          "value": "rgb(29, 53, 208)",
+          "role": "action background",
+          "selector": "button",
+          "sourceId": "s1"
+        }
+      ],
+      "fonts": [
+        {
+          "value": "Arial, sans-serif",
+          "role": "body font",
+          "selector": "body",
+          "sourceId": "s1"
+        }
+      ],
+      "imagery": [],
+      "actions": [],
+      "logo": null,
+      "preview": null
+    },
+    "callSheet": {
+      "company": "Example Accounting",
+      "summary": "Example Accounting supports businesses in Geelong with accounting services.",
+      "opener": "What would make this conversation useful?",
+      "talkingPoints": [
+        "Possible opportunity: streamline repetitive onboarding."
+      ],
+      "questions": [
+        "Where does onboarding require repeated manual work?"
+      ]
+    }
+  },
+  "cost": {
+    "provider": "groq",
+    "model": "recorded-demo",
+    "inputTokens": 100,
+    "outputTokens": 100,
+    "costUsd": 0,
+    "estPaidUsd": 0.001,
+    "totalCostUsd": 0.01,
+    "research": {
+      "costUsd": 0.01,
+      "reservedUsd": 0.1,
+      "maxUsd": 0.1,
+      "runIds": [
+        "synthetic-run"
+      ],
+      "budgetPolicy": "target"
+    }
+  }
+}

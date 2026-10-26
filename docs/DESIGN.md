@@ -120,3 +120,7 @@ Usage examples: `bg-field text-ink`, `font-mono uppercase tracking-label text-xs
 ## 10. Assets
 - Wordmark and icon: white versions exist on the site (`wordmark-white-full`, `icon-white-full`). Ask Josh for the dark versions and SVG source before shipping; until then use the text wordmark "LEVERIC" in Geist 600.
 - Integration logos (Notion, Xero, Vercel, Gmail, Supabase, Stripe, HubSpot, GitHub) are on the site under `/assets/software-logos/`. Use only for export targets that really exist.
+
+## 11. Tool 03 dossier refinement
+
+The URL-only research screen uses a compact 24?32px title, a single URL/action row and a white flowing report with a desktop evidence rail. Brand colours, Geist and Geist Mono, square controls and shell labels remain authoritative. The Framed Sheet app direction supplies composition only; no analytics charts or decorative metric tiles are introduced. At 1000px the evidence rail stacks; at 600px form and brand columns stack. Body copy is 16px with 1.6 line height, controls have at least 44px targets, and motion is control feedback only. Captured prospect colours are data, not application theme changes.

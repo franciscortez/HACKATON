@@ -79,7 +79,7 @@ Status: `LIVE` built and demoed, `NEXT` being built, `PLANNED` spec only.
 |---|---|---|---|---|
 | 01 | Meeting to action | Any meeting transcript to action register + email draft | [tools/01-meeting-to-action.md](tools/01-meeting-to-action.md) | LIVE |
 | 02 | Sources to newsletter | Approved URLs + audience to cited newsletter draft | [tools/02-sources-to-newsletter.md](tools/02-sources-to-newsletter.md) | PLANNED |
-| 03 | Research to call brief | Company URL + contact + objective to one-page brief | [tools/03-research-to-call-brief.md](tools/03-research-to-call-brief.md) | PLANNED |
+| 03 | Research to call brief | Website URL to business/brand dossier and one-page call sheet | [tools/03-research-to-call-brief.md](tools/03-research-to-call-brief.md) | LIVE (local) |
 | 04 | URL to social content | Page + brand to three posts and a caption | [tools/04-url-to-social-content.md](tools/04-url-to-social-content.md) | PLANNED |
 | 05 | Brief to landing page | Offer brief + proof + brand to responsive page draft | [tools/05-brief-to-landing-page.md](tools/05-brief-to-landing-page.md) | PLANNED |
 | 06 | Source video to variations | Owned video + hooks to three captioned variations | [tools/06-video-to-variations.md](tools/06-video-to-variations.md) | PLANNED |
