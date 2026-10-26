@@ -18,10 +18,10 @@ Read this first, then [`AGENTS.md`](../AGENTS.md) section 3 for which docs to lo
 | AI provider chain Groq → Gemini → Ollama with per-provider output caps, fallback on 429/5xx/timeout/invalid output | `src/lib/ai/` |
 | Meeting to action: parser (Fathom, VTT, SRT, plain), chunked extraction, checks (roster owners, stated dates only, quote verification), email draft, Markdown/CSV/Slack/email export, review UI with approval | `src/features/meeting-to-action/` |
 | Two clients (Leveric real, Harbourside synthetic) | `src/data/clients/` |
-| Tests: 88 unit + API (Vitest), 4 e2e (Playwright, desktop + mobile), playwright-cli browser checks | `tests/` |
+| Tests: 96 unit + API (Vitest), 4 e2e (Playwright, desktop + mobile), playwright-cli browser checks; final review fixes (dedup, email rebuild, timestamped lines, CSV formula guard, feature imports) | `tests/` |
 
 ## Verified results (26 Oct 2026)
-- `pnpm test` 88 passed, 2 skipped (fixture recorders); `pnpm test:e2e` 4 passed; `pnpm build`, `tsc`, `eslint` clean.
+- `pnpm test` 96 passed, 2 skipped (fixture recorders); `pnpm test:e2e` 4 passed; `pnpm build`, `tsc`, `eslint` clean.
 - Live Harbourside run via the API: Groq, 5.3 s, $0.00 (about $0.0012 at paid rates), correct owners and dates.
 - Live L10 (45 min, 46k characters): Groq about 20 s when its per-minute limit is fresh; otherwise Gemini answers, which takes longer. Local Ollama alone took about 144 s.
 - Browser: upload, run, edit (EDITED), approve (APPROVED), CSV download, re-edit (EDITED); no-speakers banner; forced 502 and 429 messages; 375 px with no horizontal scroll.
