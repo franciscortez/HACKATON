@@ -9,7 +9,7 @@ const ctx = <T extends object>(params: T) => ({ params: Promise.resolve(params) 
 
 describe("GET /api/tools", () => {
   it("lists all 10 tools in order", async () => {
-    const res = await getTools(req("/api/tools"));
+    const res = await getTools();
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.tools).toHaveLength(10);
@@ -35,7 +35,7 @@ describe("GET /api/tools/{slug}", () => {
 
 describe("GET /api/clients", () => {
   it("lists clients without email addresses", async () => {
-    const res = await getClients(req("/api/clients"));
+    const res = await getClients();
     const body = await res.json();
     expect(body.clients).toHaveLength(2);
     expect(JSON.stringify(body)).not.toContain("email");

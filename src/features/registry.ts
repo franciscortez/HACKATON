@@ -1,4 +1,5 @@
-import type { ToolMeta } from "@/types/tool";
+import { meetingToAction } from "@/features/meeting-to-action";
+import type { ToolMeta, ToolModule } from "@/types/tool";
 
 const tools: ToolMeta[] = [
   { slug: "meeting-to-action", index: "01", name: "Meeting to action", summary: "Transcript and team roster to an action register and follow-up email.", status: "NEXT" },
@@ -19,4 +20,15 @@ export function listTools(): ToolMeta[] {
 
 export function getTool(slug: string): ToolMeta | null {
   return tools.find((t) => t.slug === slug) ?? null;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- each tool has its own input and output types
+const modules: Record<string, ToolModule<any, any>> = {
+  [meetingToAction.slug]: meetingToAction,
+};
+
+/** The runnable module for a tool, or null while the tool is only planned. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getToolModule(slug: string): ToolModule<any, any> | null {
+  return modules[slug] ?? null;
 }

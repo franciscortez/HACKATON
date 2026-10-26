@@ -18,7 +18,8 @@ describe("client configs", () => {
   });
 
   it("rejects a config without a team", () => {
-    const { team: _team, ...withoutTeam } = getClient("leveric")!;
+    const withoutTeam: Record<string, unknown> = { ...getClient("leveric")! };
+    delete withoutTeam.team;
     expect(clientSchema.safeParse(withoutTeam).success).toBe(false);
   });
 });
