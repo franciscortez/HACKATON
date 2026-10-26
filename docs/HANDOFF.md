@@ -1,6 +1,14 @@
 # Handoff
 
-Last updated: 26 October 2026, Codex, branch main.
+Last updated: 26 October 2026, Claude Code, branch `feat/video-to-variations` in worktree `E:/Code/HACKATON-video` (based on `origin/main` c3ae5b6). Nothing committed or pushed; the user has not asked for a commit.
+
+## Tool 06 status (video editor, v3)
+- Built and verified, uncommitted. Opens straight into an editor at `/tools/video-to-variations`: Media bin (import several videos, drop anywhere), live preview, Claude panel, timeline (trim, split, delete, reorder, add from Media, caption text), undo/redo across every version, export 9:16 or 16:9. Videos without speech get on-screen text written by Claude when asked. Spec: `docs/tools/06-video-to-variations.md`; design: `docs/superpowers/specs/2026-10-26-video-to-variations-design.md`; plan: `docs/superpowers/plans/2026-10-26-video-to-variations.md`. The earlier "single source" doc conflict noted by Codex is resolved: docs now describe the multi-video editor.
+- Verified: `pnpm test` 258 passed, 6 skipped; `VIDEO_E2E=1 pnpm vitest run tests/integration` 4/4 (real FFmpeg, mixed shapes and frame rates, silent video, −14 LUFS ±1); e2e with the fake Claude CLI on a spare port (`PLAYWRIGHT_BASE_URL`) 4 passed (full flow desktop, local-only notice, 375 px no overflow); typecheck, lint and `pnpm build` passed.
+- Live check with real Claude Code (Sonnet) on :3005: a 46 s talking clip and a 10 s silent clip; Claude cut pauses and a retake, captioned speech and wrote outfit text for the silent clip in 31 s; export 1080×1920, 30 fps, H.264/AAC, −14.1 LUFS.
+- Servers: :3005 is a worktree dev server started by Codex (real Claude). Tests must never reuse :3000 (main repo) — use `PLAYWRIGHT_BASE_URL=http://localhost:<free port>`. A server started with `VIDEO_CLAUDE_BIN=...fake-claude.mjs` answers with a canned summary; do not hand that one to the user.
+- Pre-existing, not from this work: `tests/e2e/meeting-to-action.spec.ts:28` fails on the desktop project on base too (seen on the old base; recheck on main).
+- Next action: ask the user whether to commit the worktree branch and open a PR.
 
 ## Current status
 Tool 03 integrated with main bc745df (PR #5); checkpoint 5557ab1. Published ready PR #6: https://github.com/franciscortez/HACKATON/pull/6. Integration commit: 053d73d. PR merged on 26 October 2026 as 1c6c877bead394ae4b1406d484e7ec702949906c. Live-only homepage and CI/CD deployed successfully from e58d777. Production: https://leveric-workbench.vercel.app. Local meeting-to-action-v2 branch deleted after confirming no unique commits.

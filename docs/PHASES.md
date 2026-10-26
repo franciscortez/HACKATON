@@ -36,15 +36,15 @@ Order, based on Josh's signals in the call, reuse of tool 01 code, and run cost:
 
 | Phase | Tool | Why this order |
 |---|---|---|
-| 3 | 08 Discovery to proposal | Josh's favourite ("this one will definitely be used"); reuses transcript parsing from tool 01 |
-| 4 | 03 Research to call brief | Strong demand from Josh; adds the web fetch and research layer used by 04, 05, 07 |
-| 5 | 04 URL to social content | "Will sell like crazy"; reuses web fetch and brand config |
-| 6 | 07 Enquiry to qualified handover | Reuses research layer from 03 |
-| 7 | 10 Recording to SOP | Reuses transcription; adds screenshots via FFmpeg frames |
-| 8 | 02 Sources to newsletter | Josh already has a strong version; needs scheduling and source checks |
-| 9 | 09 Client intake to onboarding | Mostly templating and gap checks |
-| 10 | 05 Brief to landing page | Heavier output (full page); needs a template system |
-| 11 | 06 Source video to variations | Heaviest compute (video render on CPU); uses `video-editing` toolchain |
+| 3 | 06 Source video to variations | Moved first on 26 Oct 2026 (user request): prompt video editor on the user's own Claude Code subscription; desktop only |
+| 4 | 08 Discovery to proposal | Josh's favourite ("this one will definitely be used"); reuses transcript parsing from tool 01 |
+| 5 | 03 Research to call brief | Strong demand from Josh; adds the web fetch and research layer used by 04, 05, 07 |
+| 6 | 04 URL to social content | "Will sell like crazy"; reuses web fetch and brand config |
+| 7 | 07 Enquiry to qualified handover | Reuses research layer from 03 |
+| 8 | 10 Recording to SOP | Reuses transcription; adds screenshots via FFmpeg frames |
+| 9 | 02 Sources to newsletter | Josh already has a strong version; needs scheduling and source checks |
+| 10 | 09 Client intake to onboarding | Mostly templating and gap checks |
+| 11 | 05 Brief to landing page | Heavier output (full page); needs a template system |
 
 Each later phase follows the same steps: deepen the tool spec, write the plan, build, add two client examples and a failure case, record a short demo, update status in `PRD.md`.
 

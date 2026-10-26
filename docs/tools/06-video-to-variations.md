@@ -1,29 +1,43 @@
 # Tool 06: Source video to variations
 
-Status: PLANNED. Short spec; deepen before building.
+Status: LIVE (local only). Design: [`superpowers/specs/2026-10-26-video-to-variations-design.md`](../superpowers/specs/2026-10-26-video-to-variations-design.md). Plan: [`superpowers/plans/2026-10-26-video-to-variations.md`](../superpowers/plans/2026-10-26-video-to-variations.md).
+
+A video editor in the Workbench. It opens straight into the editor. Import one or more videos, edit them by hand on a timeline or by asking Claude, and export a vertical or horizontal MP4.
 
 | | |
 |---|---|
-| Input | Owned video (talking head or product), audience, 3 hooks |
-| Output | Three captioned short variations (one format first: 9:16, 30-60s) |
-| Rule | One reliable format first; disclose rendering cost and time |
-| Buyer | Businesses with webinar or long-form video they never repurpose |
-| Recurring job | Turning each long video into shorts |
-| Workaround | Manual editing or paid tools (Opus Clip and similar) |
+| Input | Up to 20 owned videos per edit, each up to 20 minutes, one hour in total. Speech is optional |
+| Output | One edited MP4: 9:16 (1080×1920) or 16:9 (1920×1080) |
+| Rule | Runs only where the Workbench runs on your own computer (`pnpm dev`), not on Vercel. Videos never leave that computer; Claude Code reads transcripts and still frames |
+| Buyer | Businesses with talking-head, product or long-form video they never repurpose |
+| Workaround | Manual editing (Premiere, CapCut) or paid tools (Opus Clip, Voogle edit) |
 
-## Toolchain (reuse the `video-editing` skill)
-- FFmpeg: probe, trim, reframe 16:9 to 9:16 (blurred-background fit for wide shots), concat.
-- `analyze.py`: shot cuts and speech, so segments never cross a hard cut.
-- `transcribe.py` (faster-whisper, CPU int8): word timings for captions.
-- HyperFrames: captions, hook title card, end card, final render.
-- All local: $0 per run, but CPU render time (minutes per variation on this machine: AMD RX 6650 XT, no CUDA).
+## Flow
+1. **Open the tool.** The editor shows at once: your last edit, or a new empty one. "New edit" starts another.
+2. **Import videos.** Use Import (several at once) or drop files anywhere on the editor. Each video goes into the Media panel and onto the end of the timeline, in order. The app makes a preview copy, thumbnails, a waveform and, if there is speech, a transcript with word timings.
+3. **Edit by hand.** Trim clip edges, split at the playhead, delete, drag clips to reorder, drag a video from Media onto the timeline (or press Add), turn captions on and edit their text, switch 9:16 / 16:9.
+4. **Edit by asking.** Type a request in the Claude panel ("cut the pauses and add captions"), optionally over a range you marked on the timeline. Claude Code, signed in with your own Claude subscription, returns a new timeline; the panel shows its summary and "Changed a–b". For a video with no speech, asking for captions makes Claude write short on-screen text itself, which you can edit.
+5. **Undo and redo** walk every version, whether you, an import or Claude made it.
+6. **Export** renders the current version with FFmpeg and downloads it.
 
-## Model needs
-Free LLM picks segments from the transcript for each hook (returns time ranges with reasons).
+## Editor layout
+Header (edit name, format switch, captions, undo/redo, status, Export, New edit) · Media panel on the left · preview with live captions and titles in the middle · Claude panel on the right · full-width timeline below with tracks for titles, captions, video thumbnails (a colour band per video) and the audio waveform. Light Leveric theme. On narrow screens the panels stack.
 
-## Cost risk
-Compute time, not money. Rendering cannot run on Vercel; needs a local or worker machine (the DGX Spark or Mac Mini Josh mentioned).
+## Output format
+MP4, H.264 + AAC, 30 fps, −14 LUFS. Captions: up to 6 words, uppercase, white with a black outline, one emphasised word in red. Each clip whose video is the other shape gets a blurred background fill. Videos with no sound play silence.
 
-## Open questions
-- Job queue and where renders run.
-- Maximum source length (suggest 20 minutes).
+## Acceptance criteria
+- Opening the tool shows the editor, never an upload page.
+- Several videos import at once and land on the timeline in order; videos with or without speech or sound work.
+- Trim, split, delete, reorder, add from Media and caption text edits update the preview at once and are still there after a reload.
+- A prompt, optionally over a marked range, creates a new version and shows "Changed a–b"; captions for speech use the transcript; videos without speech get text Claude writes.
+- Undo and redo walk every version.
+- Export 9:16 and 16:9 give files matching the output format (checked with ffprobe and `ebur128`, −14 LUFS ±1); an empty timeline cannot be exported.
+- On Vercel the tool shows "Runs locally" and its API returns 503 `local_only`.
+- Browser check passes at desktop width and 375 px.
+
+## Cost
+$0 per run in money: Claude Code uses the user's flat-rate subscription; everything else runs on this computer.
+
+## Out of scope
+Your own images or text layers beyond titles and captions, keyframes, transitions, picture-in-picture or multi-track compositing, multi-user editing, rendering on Vercel.
