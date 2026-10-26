@@ -38,6 +38,7 @@ const entry = (name: ProviderEntry["name"], model: ProviderEntry["create"] exten
   name,
   model: `${name}-model`,
   timeoutMs: 1000,
+  maxOutputTokens: 2048,
   create: () => model,
 });
 
@@ -54,6 +55,32 @@ describe("availableProviders", () => {
   it("never offers a cloud provider to a local-only client", () => {
     const env = { GROQ_API_KEY: "g", GOOGLE_GENERATIVE_AI_API_KEY: "k" };
     expect(availableProviders("local-only", env).map((p) => p.name)).toEqual(["ollama"]);
+  });
+});
+
+describe("provider settings", () => {
+  it("gives reasoning cloud models room to think and caps the local model", () => {
+    const env = { GROQ_API_KEY: "g", GOOGLE_GENERATIVE_AI_API_KEY: "k" };
+    const caps = Object.fromEntries(availableProviders("cloud-ok", env).map((p) => [p.name, p.maxOutputTokens]));
+    expect(caps).toEqual({ groq: 8192, gemini: 8192, ollama: 2048 });
+  });
+
+  it("passes the provider's output cap and options to the model", async () => {
+    let seen: { maxOutputTokens?: number; providerOptions?: unknown } = {};
+    const model = new MockLanguageModelV4({
+      doGenerate: async (options) => {
+        seen = options;
+        return reply('{"answer":"x"}').doGenerate(options);
+      },
+    });
+    await generateStructured({
+      schema,
+      system: "s",
+      prompt: "p",
+      providers: [{ ...entry("groq", model), maxOutputTokens: 8192, providerOptions: { groq: { reasoningEffort: "low" } } }],
+    });
+    expect(seen.maxOutputTokens).toBe(8192);
+    expect(seen.providerOptions).toEqual({ groq: { reasoningEffort: "low" } });
   });
 });
 

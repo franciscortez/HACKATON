@@ -1,7 +1,7 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { APICallError, Output, generateText, type LanguageModel } from "ai";
+import { APICallError, Output, generateText, type JSONValue, type LanguageModel } from "ai";
 import type { ZodType } from "zod";
 import { estimateCost } from "@/lib/ai/cost";
 import { MODELS, TIMEOUT_MS } from "@/lib/ai/models";
@@ -12,6 +12,9 @@ export interface ProviderEntry {
   name: ProviderName;
   model: string;
   timeoutMs: number;
+  /** Reasoning models spend output tokens on thinking, so cloud models get more room. */
+  maxOutputTokens: number;
+  providerOptions?: Record<string, Record<string, JSONValue>>;
   create: () => LanguageModel;
 }
 
@@ -36,6 +39,8 @@ export function availableProviders(policy: ClientConfig["dataPolicy"], env: Env 
       name: "groq",
       model: MODELS.groq,
       timeoutMs: TIMEOUT_MS.groq,
+      maxOutputTokens: 8192,
+      providerOptions: { groq: { reasoningEffort: "low" } },
       create: () => createGroq({ apiKey: env.GROQ_API_KEY })(MODELS.groq),
     });
   }
@@ -44,6 +49,8 @@ export function availableProviders(policy: ClientConfig["dataPolicy"], env: Env 
       name: "gemini",
       model: MODELS.gemini,
       timeoutMs: TIMEOUT_MS.gemini,
+      maxOutputTokens: 8192,
+      providerOptions: { google: { thinkingConfig: { thinkingBudget: 1024 } } },
       create: () => createGoogleGenerativeAI({ apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY })(MODELS.gemini),
     });
   }
@@ -52,6 +59,7 @@ export function availableProviders(policy: ClientConfig["dataPolicy"], env: Env 
     name: "ollama",
     model: ollamaModel,
     timeoutMs: TIMEOUT_MS.ollama,
+    maxOutputTokens: 2048,
     create: () =>
       createOpenAICompatible({
         name: "ollama",
@@ -88,6 +96,9 @@ export async function generateStructured<T>(args: StructuredArgs<T>): Promise<{ 
           prompt: args.prompt,
           output: Output.object({ schema: args.schema }),
           temperature: 0,
+          // Hard stop so a looping model cannot run until its context is full.
+          maxOutputTokens: provider.maxOutputTokens,
+          providerOptions: provider.providerOptions,
           maxRetries: 0,
           abortSignal: AbortSignal.timeout(provider.timeoutMs),
         });

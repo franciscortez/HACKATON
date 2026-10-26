@@ -1,0 +1,183 @@
+{
+  "extraction": {
+    "actions": [
+      {
+        "task": "Fix preview branch DB to connect to preview",
+        "owner": "Francis",
+        "dueText": null,
+        "priority": "normal",
+        "quote": "Fix preview branch DB to connect to preview",
+        "timestamp": "8:41"
+      },
+      {
+        "task": "Fix YSL CI to not run on drafts",
+        "owner": "Yohan",
+        "dueText": null,
+        "priority": "normal",
+        "quote": "Fix YSL CI to not run on drafts",
+        "timestamp": "9:16"
+      },
+      {
+        "task": "Update how-to and training videos with latest Ruth content",
+        "owner": null,
+        "dueText": null,
+        "priority": "normal",
+        "quote": "we'll have to change that both for the how-to, I think. It's for the how-to videos. And two training videos as well.",
+        "timestamp": "8:13"
+      },
+      {
+        "task": "Reply to Ruth with latest video update by tomorrow night",
+        "owner": "Josh",
+        "dueText": "tomorrow night",
+        "priority": "normal",
+        "quote": "Reply to Ruth re: latest videos; confirm update by tomorrow night",
+        "timestamp": "13:50"
+      },
+      {
+        "task": "Remove Melissa’s Formula admin, retain partner access, and email login steps matching Wendy",
+        "owner": "Josh",
+        "dueText": null,
+        "priority": "normal",
+        "quote": "Remove Melissa’s Formula admin; keep partner access; send login steps (email match Wendy)",
+        "timestamp": "14:43"
+      },
+      {
+        "task": "Decide whether to send Fathom transcript to everyone",
+        "owner": "Josh Batalibasi",
+        "dueText": "after this",
+        "priority": "normal",
+        "quote": "So I'll decide after this.",
+        "timestamp": "15:56"
+      },
+      {
+        "task": "Create a Loom recording or Zoom presentation of the tool",
+        "owner": null,
+        "dueText": "at the end of the whole comp tonight",
+        "priority": "normal",
+        "quote": "I'll take a Zoom or anything done by yourself or a Loom recording at the end of the whole comp tonight.",
+        "timestamp": "15:56"
+      },
+      {
+        "task": "Build the Discovery to Proposal tool",
+        "owner": "Josh Batalibasi",
+        "dueText": null,
+        "priority": "normal",
+        "quote": "I'm going to build it myself anyway.",
+        "timestamp": null
+      },
+      {
+        "task": "Publish the tools they build",
+        "owner": null,
+        "dueText": null,
+        "priority": "normal",
+        "quote": "I want you guys to be able to publish it.",
+        "timestamp": null
+      },
+      {
+        "task": "Check out each other's tools",
+        "owner": null,
+        "dueText": "late tonight or tomorrow morning",
+        "priority": "normal",
+        "quote": "I'm going to secretly let, probably late tonight or tomorrow morning, you guys check out each other's tools",
+        "timestamp": null
+      },
+      {
+        "task": "Rank Francis and Yohan's tools (1st and 2nd place) and send a private DM to Josh",
+        "owner": "Jaz",
+        "dueText": null,
+        "priority": "normal",
+        "quote": "Jaz is checking him out. He's only allowed to rank Francis and Yohan's. It's going to be a private DM to me, but he's going to give one first place and one second place.",
+        "timestamp": null
+      },
+      {
+        "task": "Rank Jaz and Francis's tools (1st and 2nd place) and send a private DM to Josh",
+        "owner": "Yohan",
+        "dueText": null,
+        "priority": "normal",
+        "quote": "Yohan will do the same. He'll see Jaz and Francis. First place to Jaz or Francis, second place to Jaz or Francis.",
+        "timestamp": null
+      },
+      {
+        "task": "Rank Jaz and Yohan's tools (1st and 2nd place) and send a private DM to Josh",
+        "owner": "Francis Emil Cortez",
+        "dueText": null,
+        "priority": "normal",
+        "quote": "Everyone's going to do it. Same for Francis.",
+        "timestamp": null
+      },
+      {
+        "task": "Submit the handover at the end of today, ensuring it ticks the notes and is all work",
+        "owner": null,
+        "dueText": "at the end of today",
+        "priority": "normal",
+        "quote": "when you submit it at the end of today, okay, so make sure it ticks those notes, make sure it's all work and all",
+        "timestamp": null
+      },
+      {
+        "task": "Send Fathom recording and slides to Jaz, Yohan, and Francis",
+        "owner": "Josh",
+        "dueText": null,
+        "priority": "normal",
+        "quote": "ACTION ITEM: Send Fathom recording + slides to Jaz, Yohan, Francis",
+        "timestamp": null
+      },
+      {
+        "task": "Create a shareable link for the slides",
+        "owner": "Josh",
+        "dueText": null,
+        "priority": "normal",
+        "quote": "I'll make this a shareable link for us",
+        "timestamp": "41:45"
+      }
+    ],
+    "decisions": [
+      {
+        "text": "The team will send a reply to Ruth confirming the video update by tomorrow night.",
+        "quote": "Reply to Ruth re: latest videos; confirm update by tomorrow night"
+      },
+      {
+        "text": "The team will remove Melissa’s admin rights, keep partner access, and send login steps matching Wendy’s email.",
+        "quote": "Remove Melissa’s Formula admin; keep partner access; send login steps (email match Wendy)"
+      },
+      {
+        "text": "The competition prize will be $250 cash, paid this week as an extra bonus.",
+        "quote": "It's going to be $250 no matter what, but even though it's called one tool, you have permission to do more than one"
+      },
+      {
+        "text": "Participants can build more than one tool for the competition.",
+        "quote": "even though it's called one tool, you have permission to do more than one"
+      },
+      {
+        "text": "The tools developed must be actual business tools that Leveric will use.",
+        "quote": "it's going to be an actual business tool that we're going to be using, so we need to take it seriously."
+      },
+      {
+        "text": "The tools should be low cost to run, ideally free or costing cents/dollars instead of tens/hundreds/thousands of dollars.",
+        "quote": "we just need to make sure it doesn't have to be free to run them. If we could do it for free, or like, you know, cents or dollars, instead of tens of dollars or hundreds or thousands of dollars, it's going to help us use these tools more."
+      },
+      {
+        "text": "The tools should be usable by $1,000 a month clients.",
+        "quote": "I want these tools to be able to be used by the $1,000 a month, so they're going to have to be very low cost."
+      }
+    ],
+    "openQuestions": [
+      {
+        "text": "Are there any other urgent obstacles?",
+        "quote": "Anything else urgent as well on those sides? or any other obstacles that we're thinking of?"
+      },
+      {
+        "text": "How will the meeting recordings be handled for the automatic summary tool?",
+        "quote": "How they record it? It's going to be up to you guys. That's where it gets a bit complicated because you've got to think a bit deeper. Is it going to be recorded natively on their phone and then just text it somewhere? Or is it going to be recorded only through their team's meeting notes?"
+      }
+    ]
+  },
+  "cost": {
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "inputTokens": 13747,
+    "outputTokens": 4721,
+    "costUsd": 0,
+    "estPaidUsd": 0.01184
+  },
+  "seconds": 20.739
+}
