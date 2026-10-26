@@ -11,7 +11,7 @@ Goal: every tool runs for about $0 per run on free tiers, with a local fallback,
 | Fonts | `geist` package (Geist, Geist Mono) | Same fonts as leveric.ai | $0 |
 | Validation | Zod | One schema per tool for inputs, model output and exports | $0 |
 | AI layer | Vercel AI SDK (`ai`) with `generateObject` / `streamObject` | One API across providers; structured output validated by Zod | $0 |
-| LLM default | Groq free tier (Llama 3.3 70B class) | Fast, free, good at extraction | $0 within free limits |
+| LLM default | Groq free tier (`openai/gpt-oss-120b`) | Fast (about 5 s for a short meeting), free, JSON-schema output | $0 within free limits |
 | LLM second | Google Gemini free tier (Flash class) | Long context (whole meetings), free | $0 within free limits |
 | LLM fallback | Ollama local (7-8B instruct model, Q4) | Offline, private, no rate limit | Electricity only |
 | Speech to text | Groq Whisper (large-v3-turbo) free tier; local faster-whisper fallback | Free, accurate; local copy already installed via the `video-editing` toolchain | $0 |
@@ -34,7 +34,7 @@ Goal: every tool runs for about $0 per run on free tiers, with a local fallback,
 
 ### Model IDs
 Free-tier model names change often. Keep them in one file (`lib/ai/models.ts`) and check them on the build day against the providers' model lists. Starting points:
-- Groq: `llama-3.3-70b-versatile` (text), `whisper-large-v3-turbo` (audio).
+- Groq: `openai/gpt-oss-120b` (text; `llama-3.3-70b-versatile` was no longer offered on 26 Oct 2026), `whisper-large-v3-turbo` (audio).
 - Gemini: current free Flash model (for example `gemini-2.5-flash`).
 - Ollama: `qwen2.5:7b-instruct` or `llama3.1:8b` at Q4.
 
@@ -73,4 +73,6 @@ Free-tier model names change often. Keep them in one file (`lib/ai/models.ts`) a
 | @ai-sdk/openai-compatible | 3.0.78 (used for Ollama at `http://127.0.0.1:11434/v1`) |
 | vitest | 5.0.5 |
 | @playwright/test | 1.64.1 |
-| Local model | `qwen2.5:7b-instruct` in Ollama 0.40.11 (Vulkan, 16k context) |
+| Groq model | `openai/gpt-oss-120b` (reasoning effort low, 8k output cap) |
+| Gemini model | `gemini-2.5-flash` (thinking budget 1024, 8k output cap) |
+| Local model | `qwen2.5:7b-instruct` in Ollama 0.40.11 (Vulkan, 16k context, 2k output cap) |

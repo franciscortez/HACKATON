@@ -10,7 +10,8 @@ export default defineConfig({
     reuseExistingServer: true,
   },
   projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"] } },
-    { name: "mobile", use: { ...devices["Pixel 7"] } },
+    // Microsoft Edge is installed on this machine; Chrome is not.
+    { name: "desktop", use: { ...devices["Desktop Edge"], channel: "msedge" } },
+    { name: "mobile", use: { ...devices["Pixel 7"], channel: "msedge" } },
   ],
 });

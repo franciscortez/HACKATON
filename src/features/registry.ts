@@ -2,7 +2,7 @@ import { meetingToAction } from "@/features/meeting-to-action";
 import type { ToolMeta, ToolModule } from "@/types/tool";
 
 const tools: ToolMeta[] = [
-  { slug: "meeting-to-action", index: "01", name: "Meeting to action", summary: "Transcript and team roster to an action register and follow-up email.", status: "NEXT" },
+  { slug: "meeting-to-action", index: "01", name: "Meeting to action", summary: "Transcript and team roster to an action register and follow-up email.", status: "LIVE" },
   { slug: "sources-to-newsletter", index: "02", name: "Sources to newsletter", summary: "Approved sources and audience to a cited newsletter draft.", status: "PLANNED" },
   { slug: "research-to-call-brief", index: "03", name: "Research to call brief", summary: "Company URL, contact and objective to a one-page call brief.", status: "PLANNED" },
   { slug: "url-to-social-content", index: "04", name: "URL to social content", summary: "A public page and brand to three posts and a caption.", status: "PLANNED" },

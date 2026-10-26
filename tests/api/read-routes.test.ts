@@ -13,7 +13,7 @@ describe("GET /api/tools", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.tools).toHaveLength(10);
-    expect(body.tools[0]).toMatchObject({ slug: "meeting-to-action", index: "01", status: "NEXT" });
+    expect(body.tools[0]).toMatchObject({ slug: "meeting-to-action", index: "01", status: "LIVE" });
   });
 });
 

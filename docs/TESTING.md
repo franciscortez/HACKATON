@@ -18,7 +18,7 @@ tests/
 | Layer | Tool | Runs |
 |---|---|---|
 | Unit and API | Vitest | `pnpm test` |
-| End to end | Playwright | `pnpm test:e2e` |
+| End to end | Playwright (Microsoft Edge channel; Chrome is not installed here) | `pnpm test:e2e` |
 | Browser checks by the agent | `playwright-cli` (the `/playwright-cli` skill) | Run against `pnpm dev` or the Vercel preview URL (section 5) |
 
 ## 3. What each layer covers
@@ -36,7 +36,7 @@ tests/
 - No secrets in fixtures. Real client data only where the owner approved it.
 
 ## 5. Browser checks with playwright-cli
-Every feature is checked in a real browser with the `/playwright-cli` skill before it is called done. If the global command is missing, use `npx playwright cli` or install `@playwright/cli`.
+Every feature is checked in a real browser with the `/playwright-cli` skill before it is called done. If the global command is missing, use `npx playwright cli` or install `@playwright/cli`. On this machine open the browser with `playwright-cli open --browser=msedge`. Use exact labels (`getByLabel('Owner for task 1', { exact: true })`), because "task 1" also matches "task 10".
 
 ### When
 - After each UI task in a feature plan.

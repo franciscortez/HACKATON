@@ -83,7 +83,7 @@ Status: `LIVE` built and demoed, `NEXT` being built, `PLANNED` spec only.
 
 | # | Tool | Input to output | Spec | Status |
 |---|---|---|---|---|
-| 01 | Meeting to action | Transcript or audio + roster to action register + email draft | [tools/01-meeting-to-action.md](tools/01-meeting-to-action.md) | NEXT |
+| 01 | Meeting to action | Transcript or audio + roster to action register + email draft | [tools/01-meeting-to-action.md](tools/01-meeting-to-action.md) | LIVE |
 | 02 | Sources to newsletter | Approved URLs + audience to cited newsletter draft | [tools/02-sources-to-newsletter.md](tools/02-sources-to-newsletter.md) | PLANNED |
 | 03 | Research to call brief | Company URL + contact + objective to one-page brief | [tools/03-research-to-call-brief.md](tools/03-research-to-call-brief.md) | PLANNED |
 | 04 | URL to social content | Page + brand to three posts and a caption | [tools/04-url-to-social-content.md](tools/04-url-to-social-content.md) | PLANNED |

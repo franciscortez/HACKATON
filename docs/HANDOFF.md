@@ -2,52 +2,64 @@
 
 Read this first, then [`AGENTS.md`](../AGENTS.md) section 3 for which docs to load. Update this file at the end of every session (rules in `AGENTS.md` section 5).
 
-**Last updated:** 26 Oct 2026, Claude Code, branch `docs/agents-handoff`
+**Last updated:** 26 Oct 2026, Claude Code, branch `feat/workbench-phase-1-2` (committed locally, not pushed)
 
 ## Current status
-- Phase: **0, docs** (see `docs/PHASES.md`). Docs are written and merged. **No code exists yet.**
-- First tool: **01 Meeting to action** (`docs/tools/01-meeting-to-action.md`).
+- Phases 1 and 2 are built: the workbench shell and tool **01 Meeting to action** work end to end (`docs/superpowers/plans/2026-10-26-phase-1-2-meeting-to-action.md`).
+- Tool 01 status is `LIVE`. Tools 02-10 are `PLANNED` (spec only).
 - Hackathon submission cutoff: **7 pm AEDT, 26 Oct 2026**.
 
 ## Done
 | What | Where |
 |---|---|
-| Hackathon brief summarised from the 20-slide deck | `slides/TICKET-GOAL.md` (commit `d2bc5d8`) |
-| PRD, design (Leveric brand tokens from leveric.ai), tech stack, architecture, phases, deep spec for tool 01, short specs for tools 02-10 | PR #1 |
-| Architecture simplified to feature folders + REST API in `app/api/`; separate `TESTING.md` with playwright-cli browser checks | PR #2 |
-| `AGENTS.md` (read-first rules) and this handoff | Branch `docs/agents-handoff` (pushed, no PR yet) |
-| Local Ollama configured for the fallback provider (settings below) | This machine only, not in git |
+| Docs: PRD, design, stack, architecture, testing, phases, tool specs, AGENTS.md | PRs #1-#3 |
+| Next.js 16.4 app (pnpm, `src/`, `@/*`), brand tokens, app shell, tools index | Branch `feat/workbench-phase-1-2` |
+| REST API: `GET /api/tools`, `/api/tools/{slug}`, `/api/clients`, `/api/clients/{id}`, `POST /api/tools/{slug}/runs` | `src/app/api/` |
+| AI provider chain Groq → Gemini → Ollama with per-provider output caps, fallback on 429/5xx/timeout/invalid output | `src/lib/ai/` |
+| Meeting to action: parser (Fathom, VTT, SRT, plain), chunked extraction, checks (roster owners, stated dates only, quote verification), email draft, Markdown/CSV/Slack/email export, review UI with approval | `src/features/meeting-to-action/` |
+| Two clients (Leveric real, Harbourside synthetic) | `src/data/clients/` |
+| Tests: 88 unit + API (Vitest), 4 e2e (Playwright, desktop + mobile), playwright-cli browser checks | `tests/` |
 
-## In progress
-- Downloading `qwen2.5:7b-instruct` (about 4.7 GB) into Ollama. The first download broke when Ollama restarted, so its partial files were deleted and a fresh pull started.
-- When it finishes: run `ollama list` to confirm it is there, then test it with a short JSON extraction prompt (`ollama run qwen2.5:7b-instruct`, or `POST http://127.0.0.1:11434/api/chat` with `"format": "json"`). Record speed and whether it ran on the GPU (`ollama ps` shows `100% GPU`).
+## Verified results (26 Oct 2026)
+- `pnpm test` 88 passed, 2 skipped (fixture recorders); `pnpm test:e2e` 4 passed; `pnpm build`, `tsc`, `eslint` clean.
+- Live Harbourside run via the API: Groq, 5.3 s, $0.00 (about $0.0012 at paid rates), correct owners and dates.
+- Live L10 (45 min, 46k characters): Groq about 20 s when its per-minute limit is fresh; otherwise Gemini answers, which takes longer. Local Ollama alone took about 144 s.
+- Browser: upload, run, edit (EDITED), approve (APPROVED), CSV download, re-edit (EDITED); no-speakers banner; forced 502 and 429 messages; 375 px with no horizontal scroll.
+
+## Known limits
+- **L10 owner accuracy:** Fathom puts `ACTION ITEM` lines inside whichever speaker's turn is current, so models sometimes pick the wrong owner (for example "Fix preview branch DB" given to Francis instead of Yohan). The reviewer fixes owners in the Review step. The spec target (5 of 6 golden owners) is not met on L10; Harbourside owners are correct.
+- Groq's free tier has a small per-minute token limit: back-to-back long meetings fall back to Gemini.
+- Run cap and history live in browser storage (a user can clear them).
+- Audio upload is not built (phase 2b).
+- Not deployed to Vercel yet.
 
 ## Next step
-After the model test, write the implementation plan for **phase 1 (shell and design system) and phase 2 (Meeting to action)** with the `superpowers:writing-plans` skill. Save it to `docs/superpowers/plans/2026-10-26-phase-1-2-meeting-to-action.md`, then ask the user which execution method to use.
+1. Push the branch, open a PR and merge (when the user asks).
+2. Deploy to Vercel with `GROQ_API_KEY` and `GOOGLE_GENERATIVE_AI_API_KEY` set as environment variables.
+3. Record the demo (script in `docs/tools/01-meeting-to-action.md` §9).
 
 ## Decisions made (with the user)
 | Decision | Detail |
 |---|---|
-| Stack | Next.js (App Router, TypeScript), Tailwind v4, shadcn/ui, Zod, Vercel AI SDK |
-| AI | Free tiers with local fallback: Groq, then Gemini, then Ollama |
-| Storage | No database in phase 1: client configs as JSON in `clients/`, runs in browser storage |
-| Structure | `features/<feature-name>/` for each tool; global `components/`, `lib/`, `services/`, `types/`, `schemas/` |
-| API | REST route handlers in `app/api/` only |
-| Tests | Top-level `tests/`; Vitest, Playwright, and playwright-cli browser checks |
-| Hosting | Judges use the Vercel URL; the demo video is recorded locally so it can show the Ollama fallback |
+| Stack | Next.js 16.4 (App Router, TypeScript, `src/`, `@/*`), Tailwind v4, Zod 4, AI SDK 7, pnpm |
+| AI | Groq `openai/gpt-oss-120b` → Gemini `gemini-2.5-flash` → Ollama `qwen2.5:7b-instruct` |
+| Storage | No database: client configs in `src/data/clients/*.json`, runs in browser storage |
+| Structure | `src/features/<feature-name>/`; global `components/`, `lib/`, `services/`, `types/`, `schemas/` |
+| API | REST route handlers in `src/app/api/` only |
+| Tests | Root `tests/`; Vitest, Playwright, playwright-cli |
+| Hosting | Judges use the Vercel URL; the demo video is recorded locally |
 | Data | The real L10 transcript may be committed, deployed and sent to cloud models |
-| Tool 01 scope | Transcript only (paste or file) for the hackathon; audio upload is phase 2b |
+| Tool 01 scope | Transcript only for the hackathon; audio upload is phase 2b |
 
 ## Open questions
 - For Josh: maximum demo length; dark logo files.
-- Claude Code reads `CLAUDE.md`, not `AGENTS.md`. A one-line `CLAUDE.md` containing `@AGENTS.md` was created, then removed from disk before commit. Ask the user whether to add it.
-- Free-tier model IDs must be checked on build day (`docs/TECH-STACK.md`).
+- Claude Code reads `CLAUDE.md`, not `AGENTS.md`. Ask the user whether to add a one-line `CLAUDE.md` containing `@AGENTS.md`.
 - Time saved per meeting (15-25 min) is an estimate, not yet validated.
 
 ## Environment notes
-- Windows 11, AMD RX 6650 XT (8 GB, no CUDA). Whisper and video tools run on CPU.
-- Video toolchain (FFmpeg, faster-whisper, HyperFrames) is installed globally; see the `video-editing` skill. Needed for tools 06 and 10.
-- Ollama 0.40.11 at `http://127.0.0.1:11434`, GPU through Vulkan (RX 6650 XT, 7.2 GB free). The "AMD driver is too old" log warning only affects ROCm and can be ignored.
-- Ollama user environment variables (set 26 Oct 2026; restart Ollama after changing them): `OLLAMA_CONTEXT_LENGTH=16384` (default 4096 is too small for a 45-minute transcript), `OLLAMA_FLASH_ATTENTION=1`, `OLLAMA_KV_CACHE_TYPE=q8_0` (halves context memory so 16k fits in 8 GB).
+- Windows 11, AMD RX 6650 XT (8 GB, no CUDA). Microsoft Edge only (no Chrome): use `playwright-cli open --browser=msedge`.
+- Ollama 0.40.11 at `http://127.0.0.1:11434`, GPU through Vulkan. User env: `OLLAMA_CONTEXT_LENGTH=16384`. Flash attention and q8 KV cache were turned off again: they did not speed up long prompts.
+- Long prompts are slow locally (10.8k tokens took 194 s to read; 1k tokens reads at about 306 tokens/s). That is why transcripts are split into chunks of about 10,000 characters.
 - Do not restart Ollama during `ollama pull`: it leaves empty `-partial-N` files and later pulls fail with `Error: EOF`. Fix: delete that model's `~/.ollama/models/blobs/sha256-<digest>-partial*` files and pull again.
-- No `.env.local` yet. Needs `GROQ_API_KEY`; optional `GOOGLE_GENERATIVE_AI_API_KEY` and `OLLAMA_BASE_URL`.
+- `.env` holds the Groq and Gemini keys (git-ignored). Load it in a shell with `set -a && . ./.env && set +a` before recording fixtures: `RECORD=1 pnpm vitest run tests/unit/meeting-to-action/record-fixtures.test.ts`.
+- Video toolchain (FFmpeg, faster-whisper, HyperFrames) is installed globally; see the `video-editing` skill. Needed for tools 06 and 10.
