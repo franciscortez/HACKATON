@@ -22,6 +22,8 @@ async function works(bin: string, args: string[]): Promise<boolean> {
 /** Tool 06 runs only on a computer with Claude Code, FFmpeg and the faster-whisper Python. Never on Vercel. */
 export async function localGate(): Promise<GateResult> {
   if (process.env.VERCEL) return { ok: false, code: "local_only" };
+  // Connector capabilities are checked per operation; manual edits do not need an AI login.
+  if (process.env.VIDEO_CONNECTOR === "1") return { ok: true };
   if (cached && Date.now() - cached.at < CACHE_MS) return cached.result;
   let result: GateResult = { ok: true };
   if (!(await works(claudeBin(), ["--version"]))) result = { ok: false, code: "claude_missing" };

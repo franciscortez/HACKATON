@@ -5,6 +5,8 @@ import { FfmpegError } from "@/features/video-to-variations/services/ffmpeg";
 import { IngestError } from "@/features/video-to-variations/services/ingest";
 import { localGate } from "@/features/video-to-variations/services/local-gate";
 import { createWorkspace, defaultWorkspaceRoot, type Workspace } from "@/features/video-to-variations/services/workspace";
+import { randomUUID } from "node:crypto";
+import { operationContext, projectWriters } from "@/features/video-to-variations/services/operation-context";
 
 const GATE_MESSAGES = {
   local_only: "This tool runs only where the Workbench runs on your own computer (pnpm dev), not on Vercel.",
@@ -23,17 +25,21 @@ export function workspace(): Workspace {
   return createWorkspace(defaultWorkspaceRoot());
 }
 
-const running = new Set<string>();
 
 /** One long job per project at a time. Returns a release function, or null when a job is already running. */
 export function startJob(id: string): (() => void) | null {
-  if (running.has(id)) return null;
-  running.add(id);
-  return () => running.delete(id);
+  const owner = operationContext.getStore()?.owner ?? randomUUID();
+  const current = projectWriters.get(id);
+  if (current && current.owner !== owner) return null;
+  const lock = current ?? { owner, count: 0 };
+  lock.count += 1;
+  projectWriters.set(id, lock);
+  return () => { if (--lock.count === 0) projectWriters.delete(id); };
 }
 
 export function isRunning(id: string): boolean {
-  return running.has(id);
+  const lock = projectWriters.get(id);
+  return !!lock && lock.owner !== operationContext.getStore()?.owner;
 }
 
 export const jobRunning = () => fail("job_running", "Another change to this project is still running. Wait for it to finish.", 409);
@@ -50,18 +56,23 @@ export function errorEvent(error: unknown): { type: "error"; code: string; messa
 /** Streams newline-delimited JSON events, like the shared runs route: `progress`, then `result` or `error`. */
 export function ndjson(run: (send: (event: Record<string, unknown>) => void) => Promise<Record<string, unknown>>, release?: () => void): Response {
   const encoder = new TextEncoder();
+  let connected = true;
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      const send = (event: Record<string, unknown>) => controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+      const send = (event: Record<string, unknown>) => {
+        if (!connected) return;
+        try { controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`)); } catch { connected = false; }
+      };
       try {
         send({ type: "result", ...(await run(send)) });
       } catch (error) {
         send(errorEvent(error));
       } finally {
         release?.();
-        controller.close();
+        if (connected) controller.close();
       }
     },
+    cancel() { connected = false; },
   });
   return new Response(stream, { headers: { "Content-Type": "application/x-ndjson; charset=utf-8", "Cache-Control": "no-store" } });
 }

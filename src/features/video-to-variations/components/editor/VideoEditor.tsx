@@ -9,19 +9,20 @@ import { MediaBin, type ImportItem } from "@/features/video-to-variations/compon
 import { PreviewPlayer } from "@/features/video-to-variations/components/editor/PreviewPlayer";
 import { TimelineView, type Selection } from "@/features/video-to-variations/components/editor/TimelineView";
 import { LocalOnlyNotice } from "@/features/video-to-variations/components/LocalOnlyNotice";
+import { ConnectComputer } from "@/features/video-to-variations/components/ConnectComputer";
+import { computerStatus, connectorSession, disconnectComputer, lastProjectKey, refreshAssets, type ConnectorStatus } from "@/features/video-to-variations/components/connector-client";
 import { duration, editCaption, insertClip, remove, setCaptions, setFormat, split } from "@/features/video-to-variations/services/timeline-ops";
 import type { ClaudeModel, Project, TimeRange, Timeline } from "@/features/video-to-variations/types";
 import type { RunProgress } from "@/types/tool";
 import { cx } from "@/lib/utils";
 
-const LAST_PROJECT = "vtv:lastProject";
 const SAVE_DELAY_MS = 600;
 const FRAME_S = 1 / 30;
 
 function remember(id: string | null) {
   try {
-    if (id) localStorage.setItem(LAST_PROJECT, id);
-    else localStorage.removeItem(LAST_PROJECT);
+    if (id) localStorage.setItem(lastProjectKey(), id);
+    else localStorage.removeItem(lastProjectKey());
   } catch {
     // Storage is a convenience only.
   }
@@ -33,6 +34,9 @@ const hasFiles = (e: React.DragEvent) => e.dataTransfer.types.includes("Files");
 
 /** Tool 06: a video editor. Import videos, edit them by hand on the timeline or by asking Claude, then export. */
 export function VideoEditor() {
+  const [connectionAttempt, setConnectionAttempt] = useState(0);
+  const [computer, setComputer] = useState<ConnectorStatus | null>(null);
+  const [, setMediaRevision] = useState(0);
   const [gate, setGate] = useState<"checking" | "ok" | ApiError>("checking");
   const [project, setProject] = useState<Project | null>(null);
   const [timeline, setTimeline] = useState<Timeline | null>(null);
@@ -73,13 +77,17 @@ export function VideoEditor() {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const problem = await videoApi.health().catch(() => ({ code: "local_only", message: "" }));
+      const problem = await videoApi.health().catch((e) => ({ code: "connector_offline", message: message(e) }));
       if (!alive) return;
       setGate(problem ?? "ok");
       if (problem) return;
+      if (connectorSession()) {
+        try { setComputer(await computerStatus()); }
+        catch (e) { setGate({ code: "connector_offline", message: message(e) }); return; }
+      } else setComputer(null);
       let last: string | null = null;
       try {
-        last = localStorage.getItem(LAST_PROJECT);
+        last = localStorage.getItem(lastProjectKey());
       } catch {}
       const view = last ? await videoApi.get(last).catch(() => null) : null;
       if (!alive) return;
@@ -89,7 +97,42 @@ export function VideoEditor() {
     return () => {
       alive = false;
     };
-  }, [open, newEdit]);
+  }, [open, newEdit, connectionAttempt]);
+
+  useEffect(() => {
+    if (!project || !connectorSession()) return;
+    const renew = () => refreshAssets(project, undefined, true).then(() => setMediaRevision((n) => n + 1)).catch((e) => setError(message(e)));
+    const interval = window.setInterval(renew, 240_000);
+    const visible = () => { if (document.visibilityState === "visible") void renew(); };
+    document.addEventListener("visibilitychange", visible);
+    return () => { clearInterval(interval); document.removeEventListener("visibilitychange", visible); };
+  }, [project]);
+
+  useEffect(() => {
+    if (!project || !connectorSession()) return;
+    const pendingKey = `vtv:pending:${connectorSession()!.connectorId}:${project.id}`;
+    const operationId = sessionStorage.getItem(pendingKey);
+    if (!project.job && !operationId) return;
+    let cancelled = false;
+    const interval = window.setInterval(async () => {
+      try {
+        if (operationId) {
+          const operation = await videoApi.operation(project.id, operationId);
+          if (operation.state !== "running") {
+            if (operation.state === "completed" && operation.result?.file) {
+              await refreshAssets(project, operation.result.file);
+              if (!cancelled) setLastExport(operation.result.file);
+            }
+            sessionStorage.removeItem(pendingKey);
+            if (operation.error && !cancelled) setError(operation.error.message);
+          }
+        }
+        const view = await videoApi.get(project.id);
+        if (!cancelled) { setProject(view.project); setTimeline(view.timeline); }
+      } catch (e) { if (!cancelled) setError(message(e)); }
+    }, 2000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [project]);
 
   /** Saves the latest hand edit now (if any), in order with earlier saves. */
   const flush = useCallback(() => {
@@ -196,7 +239,7 @@ export function VideoEditor() {
       const res = await videoApi.exportVideo(project.id, setBusy);
       setProject(res.project);
       const href = videoApi.exportFile(project.id, res.file);
-      setLastExport(href);
+      setLastExport(res.file);
       const a = document.createElement("a");
       a.href = href;
       a.download = "";
@@ -225,7 +268,7 @@ export function VideoEditor() {
   }
 
   const importing = queue.some((q) => q.state !== "failed");
-  const locked = !!busy || !!thinking || importing;
+  const locked = !!busy || !!thinking || importing || !!project?.job;
 
   // Keyboard shortcuts, as in other editors. Ignored while typing.
   useEffect(() => {
@@ -264,7 +307,9 @@ export function VideoEditor() {
   });
 
   if (gate === "checking") return <p className="label mt-6 text-ink-soft">Checking this computer…</p>;
-  if (gate !== "ok") return <LocalOnlyNotice code={gate.code} />;
+  if (gate !== "ok") return process.env.NEXT_PUBLIC_VIDEO_CONNECTOR_ENABLED === "1" || connectorSession()
+    ? <><ConnectComputer onConnected={() => { setGate("checking"); setConnectionAttempt((n) => n + 1); }} />{gate.message && <p role="alert" className="mt-3 text-sm text-danger">{gate.message}</p>}</>
+    : <LocalOnlyNotice code={gate.code} />;
   if (!project || !timeline) {
     return error ? (
       <p role="alert" className="border border-danger bg-white px-4 py-3 font-medium text-danger">
@@ -302,6 +347,14 @@ export function VideoEditor() {
         if (!locked) void importFiles([...e.dataTransfer.files].filter((f) => f.type.startsWith("video/") || /\.(mov|mp4|m4v|webm|mkv)$/i.test(f.name)));
       }}
     >
+      {computer && <div className="flex flex-wrap items-center gap-3 border-b border-rule-l pb-3 text-sm">
+        <span>Computer connected · Claude Code {computer.providers.claude.ready ? "ready" : "not ready"}</span>
+        <button type="button" onClick={() => void computerStatus().then(setComputer).catch((e) => setError(message(e)))} className="underline">Check connection</button>
+        <button type="button" onClick={() => void disconnectComputer().catch(() => {}).finally(() => { setComputer(null); setProject(null); setTimeline(null); setGate({ code: "local_only", message: "Disconnected. Restart the connector for a new pairing code." }); })} className="underline">Disconnect</button>
+        {!computer.providers.claude.ready && <p className="w-full text-warn">{computer.providers.claude.message}</p>}
+        {Object.entries(computer.dependencies).filter(([, ready]) => !ready).map(([name]) => <p key={name} className="text-warn">{name === "transcriptionModel" ? "Speech model is not cached. The first import downloads it." : `${name} is unavailable. Run pnpm video:connector:doctor.`}</p>)}
+        <p className="w-full text-xs text-ink-soft">Videos stay on this computer. Claude receives prompts, transcripts and selected frames. Codex is not available yet.</p>
+      </div>}
       <div className="flex flex-wrap items-center gap-2 border-b border-rule-l pb-3">
         <label className="mr-auto flex min-w-0 items-center gap-2">
           <span className="sr-only">Edit name</span>
@@ -357,7 +410,7 @@ export function VideoEditor() {
       {lastExport && project.status === "APPROVED" && (
         <p className="text-sm">
           Exported.{" "}
-          <a href={lastExport} download className="text-blue underline-offset-4 hover:underline">
+          <a href={videoApi.exportFile(project.id, lastExport)} download referrerPolicy="no-referrer" className="text-blue underline-offset-4 hover:underline">
             Download again
           </a>
         </p>
@@ -434,7 +487,7 @@ export function VideoEditor() {
           <ClaudePanel
             project={project}
             busy={thinking}
-            disabled={locked || empty}
+            disabled={locked || empty || (computer !== null && !computer.providers.claude.ready)}
             range={range}
             model={model}
             notice={notice}

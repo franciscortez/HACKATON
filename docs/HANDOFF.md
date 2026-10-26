@@ -1,16 +1,19 @@
 # Handoff
 
-Last updated: 26 October 2026, Claude Code, branch `feat/video-to-variations` (worktree `E:/Code/HACKATON-video`), rebased on `origin/main` dc066c4. Committed and pushed for a pull request.
+Last updated: 26 October 2026, Codex, branch `feat/hosted-video-connector`. Implementation committed as `25f07bc` and pushed. PR [#8](https://github.com/franciscortez/HACKATON/pull/8) is open against main. Production rollout remains disabled.
 
-## Tool 06 status (video editor, v3)
-- Built and verified. Opens straight into an editor at `/tools/video-to-variations`: Media bin (import several videos, drop anywhere), live preview, Claude panel, timeline (trim, split, delete, reorder, add from Media, caption text), undo/redo across every version, export 9:16 or 16:9. Videos without speech get on-screen text written by Claude when asked. Spec: `docs/tools/06-video-to-variations.md`; design: `docs/superpowers/specs/2026-10-26-video-to-variations-design.md`; plan: `docs/superpowers/plans/2026-10-26-video-to-variations.md`. The earlier "single source" doc conflict noted by Codex is resolved: docs now describe the multi-video editor.
-- Verified: `pnpm test` 258 passed, 6 skipped; `VIDEO_E2E=1 pnpm vitest run tests/integration` 4/4 (real FFmpeg, mixed shapes and frame rates, silent video, −14 LUFS ±1); e2e with the fake Claude CLI on a spare port (`PLAYWRIGHT_BASE_URL`) 4 passed (full flow desktop, local-only notice, 375 px no overflow); typecheck, lint and `pnpm build` passed.
-- Live check with real Claude Code (Sonnet) on :3005: a 46 s talking clip and a 10 s silent clip; Claude cut pauses and a retake, captioned speech and wrote outfit text for the silent clip in 31 s; export 1080×1920, 30 fps, H.264/AAC, −14.1 LUFS.
-- Servers: :3005 is a worktree dev server started by Codex (real Claude). Tests must never reuse :3000 (main repo) — use `PLAYWRIGHT_BASE_URL=http://localhost:<free port>`. A server started with `VIDEO_CLAUDE_BIN=...fake-claude.mjs` answers with a canned summary; do not hand that one to the user.
-- Pre-existing, not from this work: `tests/e2e/meeting-to-action.spec.ts:28` fails on the desktop project on base too (seen on the old base; recheck on main).
-- Next action: review and merge the tool 06 pull request. The browser e2e last ran before the rebase onto dc066c4 (main only changed hosted Ollama auth); unit/API, integration, typecheck, lint and build were re-run after it.
+## Current work: hosted video connector
 
-## Current status
+- Implemented the approved [plan](superpowers/plans/2026-10-26-hosted-video-connector.md) and [design](superpowers/specs/2026-10-26-hosted-video-connector-design.md): hosted UI pairs directly with a same-computer production connector; native Claude subscription, local FFmpeg/Python, signed media, revocation, durable job recovery and stale-write rejection. Codex remains unavailable pending approved commercial authentication.
+- Verified: 272 unit/API tests passed, 6 skipped; four real FFmpeg integration tests passed; connector hosted-origin browser acceptance passed, including recovered export download; lint, typecheck, default production build and isolated connector production build passed. Fresh independent review's three findings were fixed and checked: minimum CLI version, undo/replacement stale writes, recovered export link.
+- Manual playwright-cli on Windows/Edge used the built UI intercepted at the production origin, two synthetic clips and the actual native Claude subscription. Claude added a three-second title; exported 1080x1920; desktop/375px layouts, disconnect and invalid-pairing feedback checked. Read-boundary smoke allowed a project file and denied a synthetic neighbouring file. No application console errors during successful editing; browser emitted loopback mixed-content warnings. Expected 503/400 errors occurred during disconnected/invalid-pairing checks.
+- Evidence: ignored `tests/artifacts/connector-*.png`, `connector-native-export.mp4`, `connector-boundary-result.json`; browser traces under ignored test-results. Automated tests never call real AI providers.
+- Implementation scope: connector services/launcher/routes/UI and tests; existing video routes, CLI/workspace/schema/client updates; Next/TypeScript/ESLint/package configuration; README, env example, architecture/design/testing/stack/tool docs, plan/spec and this handoff.
+- Rollout stays disabled (`NEXT_PUBLIC_VIDEO_CONNECTOR_ENABLED=0`). Neither macOS nor an actual deployed Vercel preview was tested. Production is unchanged. Setup commands and dependencies are in README. Restart the connector for a new pairing code; keep the computer awake.
+- Next action: verify a Vercel preview with the local connector, then complete macOS acceptance before enabling production.
+- Previous handoff described an unmerged tool-06 branch; the current checkout already contains that editor. Its old PR next action is superseded. The known pre-existing meeting-to-action desktop e2e failure at line 28 was not retested; this change ran the dedicated connector suite. Existing servers on :3000/:3005 were not reused or changed. Test-owned connector processes were stopped.
+
+## Earlier deployment history
 Tool 03 integrated with main bc745df (PR #5); checkpoint 5557ab1. Published ready PR #6: https://github.com/franciscortez/HACKATON/pull/6. Integration commit: 053d73d. PR merged on 26 October 2026 as 1c6c877bead394ae4b1406d484e7ec702949906c. Live-only homepage and CI/CD deployed successfully from e58d777. Production: https://leveric-workbench.vercel.app. Local meeting-to-action-v2 branch deleted after confirming no unique commits.
 Local preview: http://localhost:3000. Vercel project: leveric-workbench under bamcortezzs-projects, connected to main with Node 24.
 
@@ -41,5 +44,5 @@ Local preview: http://localhost:3000. Vercel project: leveric-workbench under ba
 - Ollama must run on the application server with the configured model. Cold loading varies. Local AI with cloud-ok still uses Apify for URLs; strict local-only allows pasted/recovered research only.
 - Long call sheets need edits before PDF. Markdown omits separate city/industry fields. Tool 01 owner accuracy needs human review. Hosting needs 300-second route support.
 
-## Next step
+## Previous tool 03 next step
 PR #6 is merged. Start the next tool from updated origin/main. Main pulled to 1c6c877. Research worktree registration and local research branch removed; residual node_modules directory remains at the former worktree path because automatic approval review blocked its removal; remote feature branch already deleted. Evidence and local env preserved in ignored .superpowers/archive/research-pr-6/. Next action: use Local Ollama on the hosted research page. Keep the PC, Ollama and ngrok running; the restart command is in README. Future main pushes automatically run CI and deploy through Vercel. This documentation closeout also triggers the same checks and deployment. Plan: docs/superpowers/plans/2026-10-26-live-homepage-deployment.md.

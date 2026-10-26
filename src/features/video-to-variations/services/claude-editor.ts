@@ -81,8 +81,9 @@ export async function editWithClaude(
   const p = await ws.mustGet(id);
   if ((await ws.readTimeline(id, p.current)).clips.length === 0) throw new TimelineInvalidError("The timeline is empty. Import a video first.");
   const words = await readWords(ws, p);
-  const sessionId = p.sessionId ?? randomUUID();
-  let resume = p.sessionId !== null;
+  const previousSession = p.providerSessions?.claude ?? p.sessionId;
+  const sessionId = previousSession ?? randomUUID();
+  let resume = previousSession !== null && previousSession !== undefined;
   let prompt = buildPrompt(p, words, req.prompt, req.range);
 
   for (let attempt = 0; attempt < 2; attempt++) {
@@ -96,7 +97,7 @@ export async function editWithClaude(
       if (timeline.clips.length === 0) throw new TimelineInvalidError("The answer removed every clip.");
       const version = await ws.writeTimeline(id, timeline, { source: "claude", label: req.prompt, summary: parsed.data.summary, changedRange: parsed.data.changedRange });
       const saved = await ws.mustGet(id);
-      await ws.save({ ...saved, sessionId });
+      await ws.save({ ...saved, sessionId, providerSessions: { ...saved.providerSessions, claude: sessionId } });
       return { version, summary: parsed.data.summary, changedRange: parsed.data.changedRange };
     } catch (error) {
       if (!(error instanceof TimelineInvalidError) || attempt === 1) throw error;

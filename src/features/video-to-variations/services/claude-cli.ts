@@ -28,8 +28,9 @@ export function buildClaudeArgs(o: { prompt: string; model: ClaudeModel; session
     "--json-schema", o.schema,
     "--model", o.model,
     "--tools", "Read,Glob",
-    "--allowedTools", "Read", "Glob",
-    "--setting-sources", "project",
+    "--permission-mode", "dontAsk",
+    "--settings", JSON.stringify({ permissions: { blockReadsOutsideWorkingDirectories: true }, disableAllHooks: true }),
+    "--setting-sources", "",
     "--strict-mcp-config",
     "--disable-slash-commands",
     "--append-system-prompt-file", o.systemPath,
@@ -64,7 +65,9 @@ export function runClaude(args: string[], cwd: string, onEvent: (e: ClaudeEvent)
   const [cmd, cmdArgs] = /\.m?js$/.test(bin) ? [process.execPath, [bin, ...args]] : [bin, args];
 
   return new Promise((resolve, reject) => {
-    const child = spawn(cmd, cmdArgs, { cwd, signal, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
+    const env = { ...process.env };
+    for (const key of Object.keys(env)) if (key.startsWith("VIDEO_CONNECTOR_") || key === "VIDEO_CONNECTOR") delete env[key];
+    const child = spawn(cmd, cmdArgs, { cwd, env, signal, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
     let buffer = "";
     let stderr = "";
     let result: StreamLine | null = null;

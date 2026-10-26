@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "video:connector:build": "node src/features/video-to-variations/scripts/connector.mjs build",
+    "video:connector": "node src/features/video-to-variations/scripts/connector.mjs start",
+    "video:connector:doctor": "node src/features/video-to-variations/scripts/connector.mjs doctor",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

@@ -107,9 +107,9 @@ export async function importMedia(
 
     step(5, "adding to the timeline");
     const media: Media = { id: mediaId, name, file, durationS: info.durationS, width: info.width, height: info.height, hasAudio: info.hasAudio, language };
-    const project = await ws.addMedia(id, media);
+    const project = await ws.mustGet(id);
     const current = await ws.readTimeline(id, project.current);
-    await ws.writeTimeline(id, appendMedia(current, media, words), { source: "hand", label: `Added ${name}` });
+    await ws.writeTimeline(id, appendMedia(current, media, words), { source: "hand", label: `Added ${name}`, media });
     step(STEPS, "ready");
     return { project: await ws.mustGet(id), media };
   } catch (error) {

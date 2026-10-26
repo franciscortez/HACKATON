@@ -13,7 +13,7 @@ export class NoSpeechError extends Error {
   }
 }
 
-export const pythonBin = () => process.env.VIDEO_PYTHON || join(homedir(), ".video-tools", "venv", "Scripts", "python.exe");
+export const pythonBin = () => process.env.VIDEO_PYTHON || join(homedir(), ".video-tools", "venv", ...(process.platform === "win32" ? ["Scripts", "python.exe"] : ["bin", "python"]));
 const script = () => join(process.cwd(), "src", "features", "video-to-variations", "scripts", "transcribe.py");
 
 /** Word timings for one imported video, written to media/<id>/transcript.json. Runs faster-whisper on this computer. */

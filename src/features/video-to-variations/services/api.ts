@@ -4,13 +4,17 @@ import { Readable } from "node:stream";
 import { z } from "zod";
 import { fail, ok } from "@/lib/api/respond";
 import { TimelineInvalidError, timelineSchema } from "@/features/video-to-variations/schemas/timeline.schema";
-import { editWithClaude } from "@/features/video-to-variations/services/claude-editor";
+import { claudeEditor } from "@/features/video-to-variations/services/editor-provider";
 import { guard, isRunning, jobRunning, ndjson, startJob, workspace } from "@/features/video-to-variations/services/http";
 import { importMedia } from "@/features/video-to-variations/services/ingest";
 import { EmptyTimelineError, renderExport } from "@/features/video-to-variations/services/render";
 import { MAX_STYLE_CHARS } from "@/features/video-to-variations/services/style";
 import { normaliseTimeline } from "@/features/video-to-variations/services/timeline";
 import type { Project, Word } from "@/features/video-to-variations/types";
+import { operationContext } from "@/features/video-to-variations/services/operation-context";
+import { beginOperation, finishOperation } from "@/features/video-to-variations/services/operations";
+import { errorEvent } from "@/features/video-to-variations/services/http";
+import { claudeReadiness } from "@/features/video-to-variations/services/connector-status";
 
 const notFound = () => fail("project_not_found", "This edit was not found.", 404);
 
@@ -29,9 +33,16 @@ async function setJob(id: string, kind: string | null): Promise<Project> {
 /** Runs a long job under the edit's lock, streaming NDJSON; the job marker is always cleared. */
 function job(id: string, kind: string, release: () => void, run: (send: (e: Record<string, unknown>) => void) => Promise<Record<string, unknown>>): Response {
   return ndjson(async (send) => {
+    const context = operationContext.getStore();
+    if (context?.operationId) await beginOperation(id, context.operationId, context.kind ?? kind);
     await setJob(id, kind);
     try {
-      return await run(send);
+      const result = await run(send);
+      await finishOperation(id, "completed", result);
+      return result;
+    } catch (error) {
+      await finishOperation(id, "failed", undefined, errorEvent(error));
+      throw error;
     } finally {
       await setJob(id, null);
     }
@@ -96,7 +107,7 @@ export async function importMediaResponse(req: Request, id: string): Promise<Res
   const body = req.body;
   return job(id, "import", release, async (send) => {
     const { project, media } = await importMedia(ws, id, body, { fileName }, (p) => send({ type: "progress", ...p }));
-    return { project, media, timeline: await ws.readTimeline(id, project.current) };
+    return { project: { ...project, job: null }, media, timeline: await ws.readTimeline(id, project.current) };
   });
 }
 
@@ -131,6 +142,10 @@ const promptSchema = z.object({
 export async function promptResponse(req: Request, id: string): Promise<Response> {
   const blocked = await guard();
   if (blocked) return blocked;
+  if (process.env.VIDEO_CONNECTOR === "1") {
+    const claude = await claudeReadiness();
+    if (!claude.ready) return fail("claude_unavailable", claude.message, 503);
+  }
   const body = promptSchema.safeParse(await req.json().catch(() => null));
   if (!body.success) return fail("invalid_input", body.error.issues[0]?.message ?? "Write what to change.", 400);
   const ws = workspace();
@@ -138,7 +153,7 @@ export async function promptResponse(req: Request, id: string): Promise<Response
   const release = startJob(id);
   if (!release) return jobRunning();
   return job(id, "prompt", release, async (send) => {
-    const { summary, changedRange } = await editWithClaude(ws, id, { prompt: body.data.prompt, range: body.data.range ?? null, model: body.data.model }, (x) => send({ type: "progress", ...x }));
+    const { summary, changedRange } = await claudeEditor.edit(ws, id, { prompt: body.data.prompt, range: body.data.range ?? null, model: body.data.model }, (x) => send({ type: "progress", ...x }));
     const project = await ws.mustGet(id);
     return { project: { ...project, job: null }, timeline: await ws.readTimeline(id, project.current), summary, changedRange };
   });
@@ -175,6 +190,8 @@ export async function exportResponse(id: string): Promise<Response> {
     const file = await renderExport(ws, id, p.current, (x) => send({ type: "progress", ...x }));
     const after = await ws.mustGet(id);
     if (after.current === p.current) after.status = "APPROVED";
+    const operationId = operationContext.getStore()?.operationId;
+    if (operationId) after.completedOperations = { ...after.completedOperations, [operationId]: { version: p.current, file } };
     await ws.save(after);
     return { project: { ...after, job: null }, file };
   });

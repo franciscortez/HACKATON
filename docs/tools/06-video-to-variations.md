@@ -1,6 +1,6 @@
 # Tool 06: Source video to variations
 
-Status: LIVE (local only). Design: [`superpowers/specs/2026-10-26-video-to-variations-design.md`](../superpowers/specs/2026-10-26-video-to-variations-design.md). Plan: [`superpowers/plans/2026-10-26-video-to-variations.md`](../superpowers/plans/2026-10-26-video-to-variations.md).
+Status: LIVE locally; hosted connector preview implemented behind a disabled rollout flag. Design: [`superpowers/specs/2026-10-26-video-to-variations-design.md`](../superpowers/specs/2026-10-26-video-to-variations-design.md). Plan: [`superpowers/plans/2026-10-26-video-to-variations.md`](../superpowers/plans/2026-10-26-video-to-variations.md).
 
 A video editor in the Workbench. It opens straight into the editor. Import one or more videos, edit them by hand on a timeline or by asking Claude, and export a vertical or horizontal MP4.
 
@@ -8,7 +8,7 @@ A video editor in the Workbench. It opens straight into the editor. Import one o
 |---|---|
 | Input | Up to 20 owned videos per edit, each up to 20 minutes, one hour in total. Speech is optional |
 | Output | One edited MP4: 9:16 (1080×1920) or 16:9 (1920×1080) |
-| Rule | Runs only where the Workbench runs on your own computer (`pnpm dev`), not on Vercel. Videos never leave that computer; Claude Code reads transcripts and still frames |
+| Rule | Runs locally, or through a paired same-computer connector from the Vercel UI. Original videos and renders stay local; Claude receives transcripts, prompts and selected still frames |
 | Buyer | Businesses with talking-head, product or long-form video they never repurpose |
 | Workaround | Manual editing (Premiere, CapCut) or paid tools (Opus Clip, Voogle edit) |
 
@@ -41,3 +41,7 @@ $0 per run in money: Claude Code uses the user's flat-rate subscription; everyth
 
 ## Out of scope
 Your own images or text layers beyond titles and captions, keyframes, transitions, picture-in-picture or multi-track compositing, multi-user editing, rendering on Vercel.
+
+## Hosted connector preview
+
+See [approved design](../superpowers/specs/2026-10-26-hosted-video-connector-design.md) and [implementation plan](../superpowers/plans/2026-10-26-hosted-video-connector.md). The hosted page first shows pairing when the rollout flag is enabled. Manual editing remains available without Claude authentication; import/export require their local dependencies. Claude uses native subscription sign-in; Codex remains unavailable. Windows browser acceptance is recorded in the handoff; macOS and deployed-preview acceptance remain rollout gates.

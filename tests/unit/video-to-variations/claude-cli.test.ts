@@ -19,7 +19,10 @@ describe("buildClaudeArgs", () => {
     expect(args.join(" ")).toContain("--json-schema {}");
     expect(args.join(" ")).toContain("--model opus");
     expect(args.join(" ")).toContain("--tools Read,Glob");
-    expect(args.join(" ")).toContain("--setting-sources project");
+    expect(args[args.indexOf("--setting-sources") + 1]).toBe("");
+    expect(args).toContain("dontAsk");
+    expect(args.join(" ")).toContain('"blockReadsOutsideWorkingDirectories":true');
+    expect(args).not.toContain("--allowedTools");
     expect(args).toContain("--strict-mcp-config");
     expect(args).toContain("--disable-slash-commands");
     expect(args.join(" ")).toContain("--append-system-prompt-file system.md");

@@ -81,3 +81,11 @@ playwright-cli close
 - `pnpm test` and `pnpm test:e2e` pass.
 - The playwright-cli flow in section 5 passes for two inputs and the failure case, on desktop and 375px, with no console errors.
 - Every acceptance criterion in the feature's tool spec maps to a test or a recorded browser check.
+
+## 7. Hosted connector acceptance
+
+Run `pnpm test`, `pnpm lint`, `pnpm typecheck` and `pnpm build`. Real media integration: set `VIDEO_E2E=1`, then `pnpm exec vitest run tests/integration`. Models remain fake in automated tests.
+
+Build with `NEXT_PUBLIC_VIDEO_CONNECTOR_ENABLED=1` using `pnpm video:connector:build`, then set `CONNECTOR_E2E=1` and run `pnpm exec playwright test --config playwright.connector.config.ts`. This test owns port 43129 and a temporary workspace. It serves the branch build at an intercepted production origin without deploying, grants Chromium loopback-network permission, pairs, imports two synthetic clips, seeks, prompts a fake Claude, undoes/redoes, exports, reloads and revokes. Screenshots go to ignored tests/artifacts. It verifies origin/CORS behaviour, not a real deployed preview.
+
+Unit/API coverage includes unpaired and hostile-origin denial, stale-write/undo conflicts, CLI minimum version, signed Range access, expiry/revocation and committed/interrupted job recovery. Before production rollout, verify the same flow on macOS, actual deployed Vercel preview, browser permission denial/recovery and the user's native subscription.

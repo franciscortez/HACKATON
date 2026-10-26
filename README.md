@@ -67,3 +67,39 @@ Vercel uses Node 24, the pinned pnpm version and a frozen lockfile. Its build co
 Check the deployment commit and Ready status in Vercel before sharing its production URL. To recover from a bad release, use Vercel's rollback to a previously verified production deployment; for the first deployment, fix the failure before publishing. A rollback can pause automatic production domain assignment; explicitly promote the next verified deployment to resume it.
 
 Security controls, reporting and current limitations: [docs/SECURITY.md](docs/SECURITY.md).
+
+
+## Hosted video editor: local connector preview
+
+The Vercel page can control a connector on the same computer. FFmpeg, Python, project files and the unmodified Claude Code CLI run locally. Original videos and renders do not pass through Vercel; Claude receives prompts, transcripts and selected still frames. Subscription limits apply. This preview supports a desktop Chrome-family browser; macOS remains an unverified rollout gate. Codex is disabled pending approved commercial authentication.
+
+Install Node 24, pnpm 10, FFmpeg (including ffprobe), Python and Claude Code 2.1.310 or later. Sign in with `claude auth login` using your subscription, and remove API/provider overrides from the connector environment. Create a Python environment and cache the speech model once:
+
+```powershell
+# Windows PowerShell
+python -m venv "$HOME/.video-tools/venv"
+& "$HOME/.video-tools/venv/Scripts/python.exe" -m pip install faster-whisper
+& "$HOME/.video-tools/venv/Scripts/python.exe" -c "from faster_whisper import WhisperModel; WhisperModel('small', device='cpu', compute_type='int8')"
+```
+
+```sh
+# macOS (install ffmpeg and Python through your preferred package manager)
+python3 -m venv "$HOME/.video-tools/venv"
+"$HOME/.video-tools/venv/bin/python" -m pip install faster-whisper
+"$HOME/.video-tools/venv/bin/python" -c "from faster_whisper import WhisperModel; WhisperModel('small', device='cpu', compute_type='int8')"
+```
+
+From this repository checkout:
+
+```sh
+pnpm install
+pnpm video:connector:build
+pnpm video:connector:doctor
+pnpm video:connector
+```
+
+Keep the terminal and computer running. In the hosted video editor, choose **Connect your computer**, allow the browser's local-network permission, and paste the printed pairing code. The code expires after ten minutes and can be used once. Pairing lasts eight hours in that browser tab. Disconnect revokes its media links; restart the connector for a new code. A blocked browser permission must be reset in site settings before retrying.
+
+The connector binds only to `127.0.0.1:43127`. Set `VIDEO_CONNECTOR_PORT` explicitly if occupied, and enter the same port in the page. Projects persist under `~/LevericWorkbench/video`; `VIDEO_WORKSPACE` can override it. `VIDEO_PYTHON`, `VIDEO_FFMPEG_BIN` and `VIDEO_FFPROBE_BIN` support custom installations. Only one connector may own a workspace. Do not expose it through a tunnel or bind it to a public interface.
+
+Rollout is off by default: set `NEXT_PUBLIC_VIDEO_CONNECTOR_ENABLED=1` **at Vercel build time** to show pairing. The production origin is allowed by default; local development or a fixed preview origin must be listed exactly in local `VIDEO_CONNECTOR_ORIGINS` (comma-separated, no wildcards). Never copy Claude credentials into Vercel or the browser. This branch has not been deployed; macOS and a real deployed preview need acceptance before enabling production.
