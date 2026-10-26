@@ -1,0 +1,20 @@
+{
+  "id": "leveric",
+  "name": "Leveric",
+  "industry": "AI systems and custom apps for expert service businesses",
+  "region": "AU",
+  "synthetic": false,
+  "brand": {
+    "voice": "Direct, plain and friendly. Short sentences. Australian spelling.",
+    "signOff": "Cheers, Josh"
+  },
+  "team": [
+    { "name": "Josh Batalibasi", "aliases": ["Josh"], "role": "Founder" },
+    { "name": "Francis Emil Cortez", "aliases": ["Francis"], "role": "Engineer" },
+    { "name": "Yohan", "aliases": [], "role": "Engineer" },
+    { "name": "Jaz", "aliases": [], "role": "Engineer" }
+  ],
+  "rules": ["Only list work the team agreed to do; skip personal chat."],
+  "usage": { "runsPerMonth": 50 },
+  "dataPolicy": "cloud-ok"
+}

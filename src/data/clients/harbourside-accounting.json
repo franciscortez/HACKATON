@@ -1,0 +1,20 @@
+{
+  "id": "harbourside-accounting",
+  "name": "Harbourside Accounting",
+  "industry": "Accounting and tax advisory, 12 staff",
+  "region": "AU",
+  "synthetic": true,
+  "brand": {
+    "voice": "Formal and precise. Australian spelling. No slang.",
+    "signOff": "Kind regards, Harbourside Accounting"
+  },
+  "team": [
+    { "name": "Margaret Chen", "aliases": ["Margaret", "Maggie"], "role": "Managing Partner" },
+    { "name": "David O'Neill", "aliases": ["David", "Dave"], "role": "Tax Partner" },
+    { "name": "Sophie Tran", "aliases": ["Sophie"], "role": "Senior Accountant" },
+    { "name": "Liam Walsh", "aliases": ["Liam"], "role": "Client Services Manager" }
+  ],
+  "rules": ["Never promise ATO outcomes to clients."],
+  "usage": { "runsPerMonth": 20 },
+  "dataPolicy": "cloud-ok"
+}
