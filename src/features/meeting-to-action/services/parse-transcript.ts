@@ -15,6 +15,9 @@ export interface ParsedTranscript {
 
 const FATHOM_HEADER = /^\[@(\d+(?::\d{2}){1,2})\]\([^)]*\)\s*-\s*\*\*(.+?)\*\*\s*$/;
 const FATHOM_ACTION = /\*\*ACTION ITEM:\s*(.+?)\s*-\s*\[WATCH\]\([^)]*\)\s*\*\*/;
+/** Fathom's plain-text export: a "1:15:37 - Name" line, then indented text. */
+const FATHOM_TEXT_HEADER = /^(\d+(?::\d{2}){1,2})\s+-\s+(.+)$/;
+const FATHOM_TEXT_ACTION = /^ACTION ITEM:\s*(.+?)\s*-\s*WATCH:?\s*\S+\s*$/;
 const CUE_TIME = /^((?:\d{2}:)?\d{2}:\d{2})[.,]\d{3}\s*-->/;
 const NAME_PREFIX = /^([A-Z][\p{L} .'’-]{0,40}?):\s+(.+)$/u;
 
@@ -22,7 +25,8 @@ export function parseTranscript(raw: string): ParsedTranscript {
   const text = raw.replace(/\r\n?/g, "\n").trim();
   if (text.startsWith("WEBVTT")) return { format: "vtt", segments: parseCues(text), actionLines: [] };
   if (/^\d+\n\d{2}:\d{2}:\d{2},\d{3}\s*-->/m.test(text)) return { format: "srt", segments: parseCues(text), actionLines: [] };
-  if (text.split("\n").some((line) => FATHOM_HEADER.test(line.trim()))) return parseFathom(text);
+  const isFathom = (line: string) => FATHOM_HEADER.test(line) || FATHOM_TEXT_HEADER.test(line);
+  if (text.split("\n").some((line) => isFathom(line.trim()))) return parseFathom(text);
   return { format: "plain", segments: parsePlain(text), actionLines: [] };
 }
 
@@ -40,14 +44,14 @@ function parseFathom(text: string): ParsedTranscript {
 
   for (const rawLine of text.split("\n")) {
     const line = rawLine.trim();
-    const header = FATHOM_HEADER.exec(line);
+    const header = FATHOM_HEADER.exec(line) ?? FATHOM_TEXT_HEADER.exec(line);
     if (header) {
       if (current?.text) segments.push(current);
       current = { speaker: header[2].trim(), timestamp: header[1], text: "" };
       continue;
     }
     if (!current || !line) continue;
-    const action = FATHOM_ACTION.exec(line);
+    const action = FATHOM_ACTION.exec(line) ?? FATHOM_TEXT_ACTION.exec(line);
     if (action) actionLines.push(action[1]);
     const clean = stripMarkdown(action ? `ACTION ITEM: ${action[1]}` : line);
     if (clean) current.text = current.text ? `${current.text} ${clean}` : clean;

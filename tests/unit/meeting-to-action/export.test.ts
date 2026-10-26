@@ -5,9 +5,9 @@ import { templateEmail } from "@/features/meeting-to-action/services/email-templ
 import { toCsv, toEmailText, toMarkdown, toSlack } from "@/features/meeting-to-action/services/export";
 import type { Action, MeetingOutput } from "@/features/meeting-to-action/types";
 import type { ProviderEntry } from "@/lib/ai/provider";
-import { getClient } from "@/services/clients";
+import { getSettings } from "@/services/settings";
 
-const leveric = getClient("leveric")!;
+const settings = getSettings();
 
 const action = (over: Partial<Action>): Action => ({
   id: "a1",
@@ -28,6 +28,7 @@ const output: MeetingOutput = {
     action({}),
     action({ id: "a2", task: 'Fix CI, then "ship"\nsoon', owner: "Unassigned", due: "No date", dueText: null, flags: ["owner-unknown"] }),
   ],
+  people: ["Jaz", "Yohan"],
   decisions: [{ text: "Keep the same phone numbers", quote: "same numbers", verified: true }],
   openQuestions: [],
   email: { subject: "Actions from L10", body: "Hi team" },
@@ -53,7 +54,7 @@ describe("toCsv formula safety", () => {
 
 describe("toMarkdown", () => {
   it("groups actions by owner and lists unassigned work under Needs an owner", () => {
-    const md = toMarkdown(output, leveric);
+    const md = toMarkdown(output);
     expect(md).toContain("### Jaz");
     expect(md).toContain("### Needs an owner");
     expect(md.indexOf("### Jaz")).toBeLessThan(md.indexOf("### Needs an owner"));
@@ -62,11 +63,10 @@ describe("toMarkdown", () => {
 });
 
 describe("toSlack", () => {
-  it("uses the Slack handle when the roster has one, else the name", () => {
-    const withHandle = { ...leveric, team: leveric.team.map((m) => (m.name === "Jaz" ? { ...m, slack: "jaz.dev" } : m)) };
-    expect(toSlack(output, withHandle)).toContain("@jaz.dev");
-    expect(toSlack(output, leveric)).toContain("Jaz");
-    expect(toSlack(output, leveric)).not.toContain("@Jaz");
+  it("groups by owner with unassigned work under Needs an owner", () => {
+    const slack = toSlack(output);
+    expect(slack).toContain("*Jaz*");
+    expect(slack).toContain("*Needs an owner*");
   });
 });
 
@@ -77,8 +77,8 @@ describe("toEmailText", () => {
 });
 
 describe("templateEmail", () => {
-  it("lists actions by owner, asks for owners of unassigned work and signs off in the client's voice", () => {
-    const email = templateEmail(output, leveric, "L10");
+  it("lists actions by owner, asks for owners of unassigned work and signs off in the workspace voice", () => {
+    const email = templateEmail(output, settings, "L10");
     expect(email.subject).toBe("Actions from L10");
     expect(email.body).toContain("Jaz");
     expect(email.body).toContain("Needs an owner");
@@ -94,7 +94,7 @@ describe("draftEmail", () => {
       },
     });
     const providers: ProviderEntry[] = [{ name: "ollama", model: "m", timeoutMs: 1000, maxOutputTokens: 2048, create: () => failing }];
-    const { email, cost } = await draftEmail({ checked: output, client: leveric, title: "L10", providers });
+    const { email, cost } = await draftEmail({ checked: output, settings, title: "L10", providers });
     expect(email.body.trim().endsWith("Cheers, Josh")).toBe(true);
     expect(cost).toBeNull();
   });

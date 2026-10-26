@@ -107,6 +107,35 @@ describe("generateStructured", () => {
     expect(result.cost.provider).toBe("ollama");
   });
 
+  it("waits and retries the same provider when it asks for a short pause (429 with retry-after)", async () => {
+    let calls = 0;
+    const limited = new MockLanguageModelV4({
+      doGenerate: async (options) => {
+        calls++;
+        if (calls === 1) {
+          throw new APICallError({
+            message: "Rate limit reached",
+            url: "https://api.groq.com",
+            requestBodyValues: {},
+            statusCode: 429,
+            responseHeaders: { "retry-after": "0.01" },
+            isRetryable: true,
+          });
+        }
+        return reply('{"answer":"after wait"}').doGenerate(options);
+      },
+    });
+    const result = await generateStructured({
+      schema,
+      system: "s",
+      prompt: "p",
+      providers: [entry("groq", limited), entry("ollama", reply('{"answer":"local"}'))],
+    });
+    expect(calls).toBe(2);
+    expect(result.cost.provider).toBe("groq");
+    expect(result.object.answer).toBe("after wait");
+  });
+
   it("retries once on invalid output before moving on", async () => {
     let calls = 0;
     const flaky = new MockLanguageModelV4({

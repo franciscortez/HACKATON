@@ -4,37 +4,37 @@
       {
         "task": "Chase missing documents for fourteen clients",
         "owner": "Sophie Tran",
-        "dueText": "by Wednesday",
+        "dueText": "Wednesday",
         "priority": "normal",
         "quote": "Sophie, can you chase the missing documents for those fourteen clients by Wednesday?",
         "timestamp": "0:52"
       },
       {
-        "task": "Send reminder emails and follow up by phone for missing documents",
+        "task": "Send reminder emails today and follow up by phone on Wednesday",
         "owner": "Sophie Tran",
-        "dueText": "today and follow up by phone on Wednesday",
+        "dueText": "today",
         "priority": "normal",
-        "quote": "I'll send the reminder emails today and follow up by phone on Wednesday.",
+        "quote": "Yes, I'll send the reminder emails today and follow up by phone on Wednesday.",
         "timestamp": "1:04"
       },
       {
-        "task": "Call Mr Patel back and explain the timeline in writing",
+        "task": "Call Mr Patel to explain timeline in writing",
         "owner": "David O'Neill",
         "dueText": "tomorrow",
         "priority": "normal",
-        "quote": "David, please call Mr Patel back and explain the timeline in writing as well. Will do, I'll call him tomorrow.",
-        "timestamp": "1:40"
+        "quote": "Will do, I'll call him tomorrow.",
+        "timestamp": "1:52"
       },
       {
-        "task": "Book kickoff call with Coastal Joinery and ask for Xero invite",
+        "task": "Book kickoff call with Coastal Joinery and request Xero invite",
         "owner": "Liam Walsh",
-        "dueText": "next Tuesday and ask for the Xero invite before then",
+        "dueText": "next Tuesday",
         "priority": "normal",
         "quote": "Liam, can you book the kickoff call with Coastal Joinery for next Tuesday and ask for the Xero invite before then?",
         "timestamp": "2:41"
       },
       {
-        "task": "Book the kickoff call for Coastal Joinery",
+        "task": "Book the kickoff call this afternoon",
         "owner": "Liam Walsh",
         "dueText": "this afternoon",
         "priority": "normal",
@@ -42,46 +42,38 @@
         "timestamp": "2:50"
       },
       {
-        "task": "Take the Coastal Joinery bank reconciliations",
-        "owner": null,
-        "dueText": "when she's back",
-        "priority": "normal",
-        "quote": "Priya can take the reconciliations when she's back.",
-        "timestamp": "3:47"
-      },
-      {
-        "task": "Get a quote from the removalist",
+        "task": "Obtain quote from removalist",
         "owner": "Liam Walsh",
-        "dueText": "by the end of next week",
+        "dueText": "end of next week",
         "priority": "normal",
-        "quote": "Liam, please get a quote from the removalist by the end of next week.",
-        "timestamp": "4:22"
+        "quote": "Sure, end of next week.",
+        "timestamp": "4:33"
       }
     ],
     "decisions": [
       {
-        "text": "Priya will handle the Coastal Joinery bank reconciliations upon her return from leave.",
-        "quote": "Priya can take the reconciliations when she's back."
+        "text": "Keep the phones on the same numbers for the office move.",
+        "quote": "We decided last month to keep the phones on the same numbers. That's still the plan, yes?"
       },
       {
-        "text": "The office phones will keep the same numbers after the move.",
+        "text": "Maintain the decision to keep phone numbers unchanged.",
         "quote": "Yes, decision stands, same numbers."
       }
     ],
     "openQuestions": [
       {
-        "text": "Does the new office have enough secure storage for paper files?",
+        "text": "Does the new office have enough secure storage for the paper files?",
         "quote": "Do we know if the new office has enough secure storage for the paper files?"
       }
     ]
   },
   "cost": {
-    "provider": "gemini",
-    "model": "gemini-2.5-flash",
-    "inputTokens": 1141,
-    "outputTokens": 1749,
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "inputTokens": 1393,
+    "outputTokens": 1033,
     "costUsd": 0,
-    "estPaidUsd": 0.00471
+    "estPaidUsd": 0.00083
   },
-  "seconds": 11.143
+  "seconds": 2.803
 }

@@ -10,10 +10,10 @@ src/
     api/                   every REST endpoint (see section 2)
   components/              global UI: ui primitives, app shell, shared workflow parts
   lib/                     global helpers: AI provider chain, model config, cost, utils
-  services/                global services: clients, runs, usage
+  services/                global services: settings, run history
   types/                   global types: tool contract, run, cost
-  schemas/                 global Zod schemas: client config, run
-  data/clients/            client config JSON (one file per client)
+  schemas/                 global Zod schemas: workspace settings
+  data/settings.json       workspace settings (voice, sign-off, rules, data policy)
   features/
     registry.ts            slug -> feature, name, status
     <feature-name>/        one folder per tool, e.g. meeting-to-action
@@ -43,14 +43,12 @@ All server work goes through REST endpoints in `app/api/`. Pages and components 
 |---|---|---|
 | `GET` | `/api/tools` | List tools with name and status |
 | `GET` | `/api/tools/{slug}` | One tool's details |
-| `GET` | `/api/clients` | List client configs (safe fields only) |
-| `GET` | `/api/clients/{clientId}` | One client config |
-| `POST` | `/api/tools/{slug}/runs` | Create a run: validate input, run the feature, return output, flags and cost |
+| `POST` | `/api/tools/{slug}/runs` | Run a tool. Bad requests get a JSON error; a valid run streams NDJSON events: `progress` (done, total, label), then `result` (output, cost) or `error` (code, plain message) |
 | `POST` | `/api/transcriptions` | Audio to transcript (phase 2b) |
 
 Responses:
 - Success: `200` (read) or `201` (run created) with JSON body.
-- Errors: one shape for every endpoint, `{ error: { code, message } }`, with `400` invalid input, `404` unknown tool or client, `413` input too large, `429` run cap reached, `502` all AI providers failed.
+- Errors: one shape for every endpoint, `{ error: { code, message } }`, with `400` invalid input, `404` unknown tool, `413` input too large. Failures during a run arrive as an `error` event with a plain message; model output never reaches the browser.
 
 Runs, edits and approvals are kept in the browser in phase 1. When server storage is added, runs get `GET /api/tools/{slug}/runs`, `GET /api/runs/{runId}` and `PATCH /api/runs/{runId}` (edit, approve).
 
@@ -59,12 +57,11 @@ Runs, edits and approvals are kept in the browser in phase 1. When server storag
 Browser                                Server (app/api)                    AI providers
 pick client, add source
 POST /api/tools/{slug}/runs  ------->  validate input (Zod)
-                                        load client config
-                                        check run cap
+                                        load workspace settings
                                         feature service: extract  -------> Groq | Gemini | Ollama
                                         validate output (Zod)
                                         feature service: check
-                             <-------  201 { output, flags, cost }
+                             <-------  stream: progress ... result { output, cost }
 review and edit   (EDITED)
 approve           (APPROVED)
 export (copy or download), save run in browser
@@ -83,7 +80,7 @@ Each feature's `index.ts` exports one object that matches the shared contract in
 `DRAFT` -> `EDITED` on any edit; `DRAFT` or `EDITED` -> `APPROVED` on approve; `APPROVED` -> `EDITED` on any later edit. Export only when `APPROVED`.
 
 ## 7. Storage
-- Client configs: JSON in `clients/`, read-only, validated at load.
+- Workspace settings: `src/data/settings.json`, read-only, validated at load.
 - Runs and run counter: browser storage in phase 1 (can be cleared by the user; known limit).
 
 ## 8. Security
@@ -92,6 +89,6 @@ Each feature's `index.ts` exports one object that matches the shared contract in
 - Source text passed to models as delimited data; prompts say to ignore instructions inside it.
 
 ## 9. Known limits (phase 1)
-- No server-side history; run cap enforced in the browser.
+- No server-side history.
 - Ollama works only when the app runs on a machine with Ollama, not on Vercel.
 - Free-tier limits can change without notice.

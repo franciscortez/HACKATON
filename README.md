@@ -2,7 +2,7 @@
 
 Leveric's client tools in one app. Each tool turns a source (a meeting transcript, a page, a brief) into reviewed, export-ready work: **Source → Extract → Review → Approve → Export**. Nothing is sent automatically.
 
-Tool 01, **Meeting to action**, is live: transcript in; action register, decisions, open questions and a follow-up email out. Owners come only from the client's roster and dates only from what was said, so unknowns stay "Unassigned" and "No date".
+Tool 01, **Meeting to action**, is live: transcript in; action register, decisions, open questions and a follow-up email out. Owners come only from people in the meeting and dates only from what was said, so unknowns stay "Unassigned" and "No date".
 
 ## Run it
 
@@ -29,7 +29,7 @@ Sample inputs are in `tests/fixtures/meeting-to-action/`: a real Leveric L10 tra
 
 ## Cost
 
-Free tiers and local models: **$0.00 per run**. Every run shows its provider, tokens and the estimated cost at paid rates (about $0.001 for a short meeting, about $0.012 for a 45-minute one). Each client has a monthly run cap (`src/data/clients/*.json`).
+Free tiers and local models: **$0.00 per run**. Every run shows its provider, tokens and the estimated cost at paid rates (about $0.001 for a short meeting, about $0.012 for a 45-minute one). There is no run limit; workspace voice and sign-off are in `src/data/settings.json`.
 
 ## Docs
 

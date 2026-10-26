@@ -1,5 +1,4 @@
 import type { Action, ActionFlag, CheckedOutput, Extraction } from "@/features/meeting-to-action/types";
-import type { ClientConfig } from "@/schemas/client.schema";
 
 const WEEKDAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
@@ -14,17 +13,34 @@ export function normalise(text: string): string {
     .trim();
 }
 
-/** Roster name for a name the model gave, or null when it is not on the roster. */
-export function matchOwner(name: string, client: ClientConfig): string | null {
-  const wanted = normalise(name.replace(/\(.*?\)/g, ""));
-  if (!wanted) return null;
-  for (const member of client.team) {
-    const full = normalise(member.name);
-    const names = [full, full.split(" ")[0], ...member.aliases.map(normalise)];
-    if (names.includes(wanted) || full.startsWith(`${wanted} `) || wanted.startsWith(`${full} `)) return member.name;
+const cleanName = (name: string) => name.replace(/\(.*?\)/g, "").replace(/\s+/g, " ").trim();
+
+/** Speakers in the order they first spoke, once each, without "(Company)" suffixes. */
+export function meetingPeople(speakers: Array<string | null>): string[] {
+  const people: string[] = [];
+  for (const speaker of speakers) {
+    const name = speaker ? cleanName(speaker) : "";
+    if (name && !people.some((p) => normalise(p) === normalise(name))) people.push(name);
   }
-  return null;
+  return people;
 }
+
+/**
+ * The person a model-given owner refers to: a speaker (by full, first or partial name), or
+ * someone named in the transcript who did not speak. Null when the name never appears.
+ */
+export function matchOwner(name: string, people: string[], transcriptText: string): string | null {
+  const wanted = normalise(cleanName(name));
+  if (!wanted) return null;
+  for (const person of people) {
+    const full = normalise(person);
+    if (full === wanted || full.split(" ")[0] === wanted || full.startsWith(`${wanted} `) || wanted.startsWith(`${full} `)) return person;
+  }
+  const escaped = wanted.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`\\b${escaped}\\b`).test(normalise(transcriptText)) ? cleanName(name) : null;
+}
+
+const nullish = (value: string | null) => (value === null || /^\s*(null|none|n\/a|unknown)?\s*$/i.test(value) ? null : value);
 
 /** ISO date for a spoken deadline, relative to the meeting date. Null when it is too vague to pin down. */
 export function resolveDue(dueText: string, meetingDate: string): string | null {
@@ -41,10 +57,16 @@ export function resolveDue(dueText: string, meetingDate: string): string | null 
 }
 
 /**
- * Turns the model's extraction into the reviewed register: owners must be on the roster,
- * dates must be stated, quotes must exist in the transcript. Unknowns stay unknown.
+ * Turns the model's extraction into the reviewed register: owners must be people in the
+ * meeting, dates must be stated, quotes must exist in the transcript. Unknowns stay unknown.
  */
-export function checkActions(extraction: Extraction, transcriptText: string, client: ClientConfig, meetingDate: string): CheckedOutput {
+export function checkActions(
+  extraction: Extraction,
+  transcriptText: string,
+  speakers: Array<string | null>,
+  meetingDate: string,
+): CheckedOutput {
+  const people = meetingPeople(speakers);
   const haystack = normalise(transcriptText);
   const lines = transcriptText.split("\n").map(normalise);
   const found = (quote: string) => normalise(quote).length > 0 && haystack.includes(normalise(quote));
@@ -52,17 +74,21 @@ export function checkActions(extraction: Extraction, transcriptText: string, cli
   const saidWithQuote = (dueText: string, quote: string) => {
     const due = normalise(dueText);
     const q = normalise(quote);
-    return q.includes(due) || lines.some((line) => line.includes(q) && line.includes(due));
+    return q.length > 0 && (q.includes(due) || lines.some((line) => line.includes(q) && line.includes(due)));
   };
 
-  const actions: Action[] = extraction.actions.map((a, i) => {
+  const actions: Action[] = extraction.actions.map((raw, i) => {
+    // Some models write the text "null" instead of null.
+    const a = { ...raw, owner: nullish(raw.owner), dueText: nullish(raw.dueText) };
     const flags: ActionFlag[] = [];
     let owner = "Unassigned";
     if (a.owner === null || !a.owner.trim()) flags.push("owner-unknown");
     else {
-      const matched = matchOwner(a.owner, client);
-      if (matched) owner = matched;
-      else flags.push("owner-not-in-roster");
+      const matched = matchOwner(a.owner, people, transcriptText);
+      if (matched) {
+        owner = matched;
+        if (!people.includes(matched)) people.push(matched);
+      } else flags.push("owner-not-in-transcript");
     }
     const resolved = a.dueText && saidWithQuote(a.dueText, a.quote) ? resolveDue(a.dueText, meetingDate) : null;
     if (!resolved) flags.push("date-unknown");
@@ -85,6 +111,7 @@ export function checkActions(extraction: Extraction, transcriptText: string, cli
 
   return {
     actions,
+    people,
     decisions: extraction.decisions.map((d) => ({ ...d, verified: found(d.quote) })),
     openQuestions: extraction.openQuestions.map((q) => ({ ...q, verified: found(q.quote) })),
   };

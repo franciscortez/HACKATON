@@ -34,9 +34,18 @@ const post = (slug: string, body: unknown) =>
     params: Promise.resolve({ slug }),
   } as never);
 
+/** The run streams newline-delimited JSON events. */
+async function events(res: Response) {
+  const text = await res.text();
+  return text
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => JSON.parse(line) as { type: string; [k: string]: unknown });
+}
+
 const extraction = (owner: string | null) =>
   JSON.stringify({
-    actions: [{ task: "Chase the documents", owner, dueText: null, priority: "normal", quote: "the shared drive is a mess", timestamp: null }],
+    actions: [{ task: "Tidy the shared drive", owner, dueText: null, priority: "normal", quote: "the shared drive is a mess", timestamp: null }],
     decisions: [],
     openQuestions: [],
   });
@@ -46,33 +55,27 @@ beforeEach(() => {
   replies = [];
 });
 
-describe("POST /api/tools/{slug}/runs", () => {
-  const transcript = readFileSync("tests/fixtures/meeting-to-action/no-speakers.txt", "utf8");
+describe("POST /api/tools/{slug}/runs: validation (plain JSON errors)", () => {
+  const transcript = "Jaz: I'll reply to Ruth.";
 
   it("404s an unknown tool", async () => {
-    const res = await post("nope", { clientId: "leveric", input: { transcript }, usedThisMonth: 0 });
+    const res = await post("nope", { input: { transcript } });
     expect(res.status).toBe(404);
     expect((await res.json()).error.code).toBe("tool_not_found");
   });
 
   it("404s a planned tool that has no module yet", async () => {
-    const res = await post("recording-to-sop", { clientId: "leveric", input: { transcript }, usedThisMonth: 0 });
-    expect(res.status).toBe(404);
-  });
-
-  it("404s an unknown client", async () => {
-    const res = await post("meeting-to-action", { clientId: "nobody", input: { transcript }, usedThisMonth: 0 });
-    expect((await res.json()).error.code).toBe("client_not_found");
+    expect((await post("recording-to-sop", { input: { transcript } })).status).toBe(404);
   });
 
   it("413s a transcript over the size limit", async () => {
-    const res = await post("meeting-to-action", { clientId: "leveric", input: { transcript: "x".repeat(120_001) }, usedThisMonth: 0 });
+    const res = await post("meeting-to-action", { input: { transcript: "x".repeat(120_001) } });
     expect(res.status).toBe(413);
     expect((await res.json()).error.code).toBe("input_too_large");
   });
 
   it("400s an empty transcript", async () => {
-    const res = await post("meeting-to-action", { clientId: "leveric", input: { transcript: "  " }, usedThisMonth: 0 });
+    const res = await post("meeting-to-action", { input: { transcript: "  " } });
     expect(res.status).toBe(400);
     expect((await res.json()).error.code).toBe("invalid_input");
   });
@@ -84,29 +87,44 @@ describe("POST /api/tools/{slug}/runs", () => {
     expect(res.status).toBe(400);
   });
 
-  it("429s when the client has used its monthly runs", async () => {
-    const res = await post("meeting-to-action", { clientId: "harbourside-accounting", input: { transcript }, usedThisMonth: 20 });
-    expect(res.status).toBe(429);
-    expect((await res.json()).error.message).toBe("This client has used 20 of 20 runs this month. Ask Leveric for more runs.");
+  it("has no run limit", async () => {
+    replies = [extraction("Jaz"), email];
+    const res = await post("meeting-to-action", { input: { transcript }, usedThisMonth: 9999 });
+    expect(res.status).toBe(200);
+    expect((await events(res)).at(-1)?.type).toBe("result");
   });
+});
 
-  it("502s with the raw model text when every provider gives invalid output", async () => {
-    replies = ["garbage", "garbage again"];
-    const res = await post("meeting-to-action", { clientId: "leveric", input: { transcript }, usedThisMonth: 0 });
-    expect(res.status).toBe(502);
-    const body = await res.json();
-    expect(body.error.code).toBe("providers_failed");
-    expect(body.error.rawText).toBe("garbage again");
-  });
+describe("POST /api/tools/{slug}/runs: streamed run", () => {
+  const transcript = readFileSync("tests/fixtures/meeting-to-action/no-speakers.txt", "utf8");
 
-  it("201s a checked run, warns when no speakers are named and keeps unknown owners unassigned", async () => {
+  it("streams progress from 0 to 100% and ends with the checked result", async () => {
     replies = [extraction(null), email];
-    const res = await post("meeting-to-action", { clientId: "leveric", input: { transcript, meetingDate: "2026-10-26" }, usedThisMonth: 3 });
-    expect(res.status).toBe(201);
-    const body = await res.json();
-    expect(body.output.warnings).toEqual(["no-speakers"]);
-    expect(body.output.actions[0]).toMatchObject({ owner: "Unassigned", due: "No date", confidence: "medium" });
-    expect(body.output.email.body).toContain("Cheers, Josh");
-    expect(body.cost).toMatchObject({ provider: "ollama", inputTokens: 1000, outputTokens: 100, costUsd: 0 });
+    const res = await post("meeting-to-action", { input: { transcript, meetingDate: "2026-10-26" } });
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("application/x-ndjson");
+
+    const all = await events(res);
+    const progress = all.filter((e) => e.type === "progress") as unknown as Array<{ done: number; total: number; label: string }>;
+    expect(progress[0]).toMatchObject({ done: 0 });
+    expect(progress.at(-1)!.done).toBe(progress.at(-1)!.total);
+    expect(progress.map((p) => p.done)).toEqual([...progress.map((p) => p.done)].sort((a, b) => a - b));
+
+    const result = all.at(-1) as { type: string; output: Record<string, unknown>; cost: Record<string, unknown> };
+    expect(result.type).toBe("result");
+    expect(result.output.warnings).toEqual(["no-speakers"]);
+    expect((result.output.actions as Array<Record<string, unknown>>)[0]).toMatchObject({ owner: "Unassigned", due: "No date" });
+    expect((result.output.email as { body: string }).body).toContain("Cheers, Josh");
+    expect(result.cost).toMatchObject({ provider: "ollama", inputTokens: 1000, outputTokens: 100, costUsd: 0 });
+  });
+
+  it("ends with a plain error event, without model text, when every provider fails", async () => {
+    replies = ["garbage", "garbage again"];
+    const all = await events(await post("meeting-to-action", { input: { transcript } }));
+    expect(all.at(-1)).toEqual({
+      type: "error",
+      code: "providers_failed",
+      message: "We couldn't finish reading this transcript. Please try again in a minute.",
+    });
   });
 });

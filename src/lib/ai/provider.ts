@@ -5,7 +5,7 @@ import { APICallError, Output, generateText, type JSONValue, type LanguageModel 
 import type { ZodType } from "zod";
 import { estimateCost } from "@/lib/ai/cost";
 import { MODELS, TIMEOUT_MS } from "@/lib/ai/models";
-import type { ClientConfig } from "@/schemas/client.schema";
+import type { Settings } from "@/schemas/settings.schema";
 import type { CostNote, ProviderName } from "@/types/run";
 
 export interface ProviderEntry {
@@ -32,7 +32,7 @@ export class ProviderError extends Error {
 type Env = Record<string, string | undefined>;
 
 /** Providers in fallback order. Cloud providers need a key and are never used for local-only clients. */
-export function availableProviders(policy: ClientConfig["dataPolicy"], env: Env = process.env): ProviderEntry[] {
+export function availableProviders(policy: Settings["dataPolicy"], env: Env = process.env): ProviderEntry[] {
   const list: ProviderEntry[] = [];
   if (policy === "cloud-ok" && env.GROQ_API_KEY) {
     list.push({
@@ -74,7 +74,7 @@ interface StructuredArgs<T> {
   schema: ZodType<T>;
   system: string;
   prompt: string;
-  policy?: ClientConfig["dataPolicy"];
+  policy?: Settings["dataPolicy"];
   providers?: ProviderEntry[];
 }
 
@@ -88,6 +88,7 @@ export async function generateStructured<T>(args: StructuredArgs<T>): Promise<{ 
   let lastError = "No AI provider is configured.";
 
   for (const provider of providers) {
+    let waited = false;
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const result = await generateText({
@@ -109,12 +110,31 @@ export async function generateStructured<T>(args: StructuredArgs<T>): Promise<{ 
         };
       } catch (error) {
         lastError = error instanceof Error ? error.message : String(error);
+        // A free tier's per-minute limit often clears in seconds: wait once rather than drop to a slower model.
+        const pause = !waited ? shortRetryAfter(error) : null;
+        if (pause !== null) {
+          waited = true;
+          await new Promise((resolve) => setTimeout(resolve, pause));
+          attempt--;
+          continue;
+        }
         if (error instanceof APICallError || isAbort(error)) break;
         rawText = (error as { text?: string }).text ?? rawText;
       }
     }
   }
   throw new ProviderError(lastError, rawText);
+}
+
+const MAX_RATE_LIMIT_WAIT_MS = 20_000;
+
+/** Milliseconds to wait for a 429 whose retry-after is short enough to be worth it, else null. */
+function shortRetryAfter(error: unknown): number | null {
+  if (!(error instanceof APICallError) || error.statusCode !== 429) return null;
+  const seconds = Number(error.responseHeaders?.["retry-after"]);
+  if (!Number.isFinite(seconds) || seconds < 0) return null;
+  const ms = Math.ceil(seconds * 1000);
+  return ms <= MAX_RATE_LIMIT_WAIT_MS ? ms : null;
 }
 
 function isAbort(error: unknown): boolean {
