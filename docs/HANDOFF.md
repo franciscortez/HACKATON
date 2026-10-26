@@ -15,7 +15,7 @@ Read this first, then [`AGENTS.md`](../AGENTS.md) section 3 for which docs to lo
 | Hackathon brief summarised from the 20-slide deck | `slides/TICKET-GOAL.md` (commit `d2bc5d8`) |
 | PRD, design (Leveric brand tokens from leveric.ai), tech stack, architecture, phases, deep spec for tool 01, short specs for tools 02-10 | PR #1 |
 | Architecture simplified to feature folders + REST API in `app/api/`; separate `TESTING.md` with playwright-cli browser checks | PR #2 |
-| `AGENTS.md` (read-first rules), `CLAUDE.md` (imports `AGENTS.md`), this handoff | Branch `docs/agents-handoff` (pushed, no PR yet) |
+| `AGENTS.md` (read-first rules) and this handoff | Branch `docs/agents-handoff` (pushed, no PR yet) |
 | Local Ollama configured for the fallback provider (settings below) | This machine only, not in git |
 
 ## In progress
@@ -40,6 +40,7 @@ After the model test, write the implementation plan for **phase 1 (shell and des
 
 ## Open questions
 - For Josh: maximum demo length; dark logo files.
+- Claude Code reads `CLAUDE.md`, not `AGENTS.md`. A one-line `CLAUDE.md` containing `@AGENTS.md` was created, then removed from disk before commit. Ask the user whether to add it.
 - Free-tier model IDs must be checked on build day (`docs/TECH-STACK.md`).
 - Time saved per meeting (15-25 min) is an estimate, not yet validated.
 
