@@ -46,6 +46,8 @@ Run locally with `pnpm dev` and open http://localhost:3000. Existing Leveric his
 
 ## Deployment and CI
 
+Production: https://leveric-workbench.vercel.app.
+
 Vercel project `leveric-workbench` belongs to `bamcortezzs-projects` and deploys the GitHub repository's `main` branch. The homepage lists only LIVE tools. GitHub CI runs `pnpm typecheck` and `pnpm lint` on main pushes and pull requests; it does not run unit or E2E tests. Type-checking generates Next.js route types first, so no build is required in CI.
 
 Vercel uses Node 24, the pinned pnpm version and a frozen lockfile. Its build command runs lint and type-check before the production build; a failed check prevents the deployment from publishing. Groq, Gemini and Apify credentials are server-only Vercel variables, not GitHub CI secrets. Research retains its Local Ollama default: **select Auto on Vercel**, because the hosted app cannot reach Ollama running on your PC.

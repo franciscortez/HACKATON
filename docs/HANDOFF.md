@@ -3,7 +3,7 @@
 Last updated: 26 October 2026, Codex, branch main.
 
 ## Current status
-Tool 03 integrated with main bc745df (PR #5); checkpoint 5557ab1. Published ready PR #6: https://github.com/franciscortez/HACKATON/pull/6. Integration commit: 053d73d. PR merged on 26 October 2026 as 1c6c877bead394ae4b1406d484e7ec702949906c. The live-only homepage and lint/type-check CI are ready locally; initial Vercel deployment is in progress. Local meeting-to-action-v2 branch deleted after confirming no unique commits.
+Tool 03 integrated with main bc745df (PR #5); checkpoint 5557ab1. Published ready PR #6: https://github.com/franciscortez/HACKATON/pull/6. Integration commit: 053d73d. PR merged on 26 October 2026 as 1c6c877bead394ae4b1406d484e7ec702949906c. Live-only homepage and CI/CD deployed successfully from e58d777. Production: https://leveric-workbench.vercel.app. Local meeting-to-action-v2 branch deleted after confirming no unique commits.
 Local preview: http://localhost:3000. Vercel project: leveric-workbench under bamcortezzs-projects, connected to main with Node 24.
 
 ## Deployment update
@@ -11,7 +11,7 @@ Local preview: http://localhost:3000. Vercel project: leveric-workbench under ba
 - GitHub CI runs type-check and lint only. Vercel repeats both before its production build.
 - Provider keys configured as server-only Vercel variables. Select Auto for research on Vercel; local Ollama is unavailable there.
 - Security guidance added in docs/SECURITY.md. This private repository uses private issues for collaborator reports; the dedicated vulnerability-reporting API is unavailable.
-- Local type-check, lint and homepage HTTP inspection passed. No E2E or unit tests were run for this deployment change.
+- Local type-check and lint passed; independent review found no significant issues. GitHub CI run 40284978022 succeeded. Vercel deployment dpl_9KxbT8f27rtbesmw5U4DZww9utRt reached Ready for e58d777. Production homepage and both LIVE routes returned HTTP 200, with exactly two tool links and count. No E2E, unit tests or paid research calls were run for this deployment change.
 
 ## Done
 - URL dossier with rendered HTML, branding, evidence, editable call sheet, approval, Markdown and A4 PDF.
@@ -34,4 +34,4 @@ Local preview: http://localhost:3000. Vercel project: leveric-workbench under ba
 - Long call sheets need edits before PDF. Markdown omits separate city/industry fields. Tool 01 owner accuracy needs human review. Hosting needs 300-second route support.
 
 ## Next step
-PR #6 is merged. Start the next tool from updated origin/main. Main pulled to 1c6c877. Research worktree registration and local research branch removed; residual node_modules directory remains at the former worktree path because automatic approval review blocked its removal; remote feature branch already deleted. Evidence and local env preserved in ignored .superpowers/archive/research-pr-6/. Current task: publish the scoped main changes and verify GitHub CI and the Vercel production deployment. Plan: docs/superpowers/plans/2026-10-26-live-homepage-deployment.md.
+PR #6 is merged. Start the next tool from updated origin/main. Main pulled to 1c6c877. Research worktree registration and local research branch removed; residual node_modules directory remains at the former worktree path because automatic approval review blocked its removal; remote feature branch already deleted. Evidence and local env preserved in ignored .superpowers/archive/research-pr-6/. Next action: use the production app; select Auto for hosted research. Future main pushes automatically run CI and deploy through Vercel. This documentation closeout also triggers the same checks and deployment. Plan: docs/superpowers/plans/2026-10-26-live-homepage-deployment.md.

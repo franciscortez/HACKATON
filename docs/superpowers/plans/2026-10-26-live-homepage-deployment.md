@@ -12,3 +12,5 @@ Approved scope: implement directly on current main, preserve the existing handof
 Ruling: GitHub private vulnerability reporting is unavailable (404) for this private repository. Document private repository issues for collaborators and existing private contact channels for others instead of publishing a broken reporting link.
 
 Ruling: direct main changes, commit, push and deployment are explicitly authorised by the approved plan. Existing tests remain untouched.
+
+Completed: homepage filtered, CI configured, Vercel Git project created with Node 24 and server-only credentials. Review found no significant issues. Main e58d777 passed GitHub CI and Vercel build; production homepage and both live routes returned HTTP 200. Final documentation closeout follows through the same automatic pipeline.
