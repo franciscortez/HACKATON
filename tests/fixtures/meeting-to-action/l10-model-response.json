@@ -3,181 +3,157 @@
     "actions": [
       {
         "task": "Fix preview branch DB to connect to preview",
-        "owner": "Francis",
+        "owner": "null",
         "dueText": null,
         "priority": "normal",
-        "quote": "Fix preview branch DB to connect to preview",
-        "timestamp": "8:41"
-      },
-      {
-        "task": "Fix YSL CI to not run on drafts",
-        "owner": "Yohan",
-        "dueText": null,
-        "priority": "normal",
-        "quote": "Fix YSL CI to not run on drafts",
+        "quote": "ACTION ITEM: Fix preview branch DB to connect to preview",
         "timestamp": "9:16"
       },
       {
-        "task": "Update how-to and training videos with latest Ruth content",
-        "owner": null,
+        "task": "Fix YSL CI to not run on drafts",
+        "owner": "null",
         "dueText": null,
         "priority": "normal",
-        "quote": "we'll have to change that both for the how-to, I think. It's for the how-to videos. And two training videos as well.",
-        "timestamp": "8:13"
+        "quote": "ACTION ITEM: Fix YSL CI to not run on drafts",
+        "timestamp": "11:25"
       },
       {
-        "task": "Reply to Ruth with latest video update by tomorrow night",
-        "owner": "Josh",
+        "task": "Reply to Ruth re: latest videos; confirm update by tomorrow night",
+        "owner": "Josh Batalibasi",
         "dueText": "tomorrow night",
         "priority": "normal",
-        "quote": "Reply to Ruth re: latest videos; confirm update by tomorrow night",
-        "timestamp": "13:50"
-      },
-      {
-        "task": "Remove Melissa’s Formula admin, retain partner access, and email login steps matching Wendy",
-        "owner": "Josh",
-        "dueText": null,
-        "priority": "normal",
-        "quote": "Remove Melissa’s Formula admin; keep partner access; send login steps (email match Wendy)",
+        "quote": "ACTION ITEM: Reply to Ruth re: latest videos; confirm update by tomorrow night",
         "timestamp": "14:43"
       },
       {
-        "task": "Decide whether to send Fathom transcript to everyone",
-        "owner": "Josh Batalibasi",
-        "dueText": "after this",
+        "task": "Remove Melissa’s Formula admin; keep partner access; send login steps (email match Wendy)",
+        "owner": "null",
+        "dueText": null,
         "priority": "normal",
-        "quote": "So I'll decide after this.",
+        "quote": "ACTION ITEM: Remove Melissa’s Formula admin; keep partner access; send login steps (email match Wendy)",
+        "timestamp": "14:43"
+      },
+      {
+        "task": "Decide the next steps after the presentation",
+        "owner": "Josh Batalibasi",
+        "dueText": null,
+        "priority": "normal",
+        "quote": "I'll decide after this.",
         "timestamp": "15:56"
       },
       {
-        "task": "Create a Loom recording or Zoom presentation of the tool",
-        "owner": null,
-        "dueText": "at the end of the whole comp tonight",
+        "task": "Arrange a Zoom or Loom recording of the presentation by tonight",
+        "owner": "Josh Batalibasi",
+        "dueText": "tonight",
         "priority": "normal",
         "quote": "I'll take a Zoom or anything done by yourself or a Loom recording at the end of the whole comp tonight.",
         "timestamp": "15:56"
       },
       {
-        "task": "Build the Discovery to Proposal tool",
-        "owner": "Josh Batalibasi",
-        "dueText": null,
-        "priority": "normal",
-        "quote": "I'm going to build it myself anyway.",
-        "timestamp": null
-      },
-      {
-        "task": "Publish the tools they build",
+        "task": "Create branded social media posts",
         "owner": null,
         "dueText": null,
         "priority": "normal",
-        "quote": "I want you guys to be able to publish it.",
+        "quote": "UR.L.S. AND THAT PUTS OUT THEIR SOCIAL MEDIA POSTS OR SOMETHING. DOES THAT MAKE SENSE?",
         "timestamp": null
       },
       {
-        "task": "Check out each other's tools",
+        "task": "Develop a landing page for clients",
         "owner": null,
+        "dueText": null,
+        "priority": "normal",
+        "quote": "IF THEY HAVE AN OFFER OR A CALL TO ACTION, WE CAN QUICKLY MAKE A LANDING PAGE FOR THEM.",
+        "timestamp": null
+      },
+      {
+        "task": "Evaluate and rank each other's tools",
+        "owner": "Jaz, Yohan, Francis",
         "dueText": "late tonight or tomorrow morning",
         "priority": "normal",
-        "quote": "I'm going to secretly let, probably late tonight or tomorrow morning, you guys check out each other's tools",
+        "quote": "I'm going to secretly let, probably late tonight or tomorrow morning, you guys check out each other's tools as well because I want encouragement there.",
         "timestamp": null
       },
       {
-        "task": "Rank Francis and Yohan's tools (1st and 2nd place) and send a private DM to Josh",
-        "owner": "Jaz",
-        "dueText": null,
-        "priority": "normal",
-        "quote": "Jaz is checking him out. He's only allowed to rank Francis and Yohan's. It's going to be a private DM to me, but he's going to give one first place and one second place.",
-        "timestamp": null
-      },
-      {
-        "task": "Rank Jaz and Francis's tools (1st and 2nd place) and send a private DM to Josh",
-        "owner": "Yohan",
-        "dueText": null,
-        "priority": "normal",
-        "quote": "Yohan will do the same. He'll see Jaz and Francis. First place to Jaz or Francis, second place to Jaz or Francis.",
-        "timestamp": null
-      },
-      {
-        "task": "Rank Jaz and Yohan's tools (1st and 2nd place) and send a private DM to Josh",
-        "owner": "Francis Emil Cortez",
-        "dueText": null,
-        "priority": "normal",
-        "quote": "Everyone's going to do it. Same for Francis.",
-        "timestamp": null
-      },
-      {
-        "task": "Submit the handover at the end of today, ensuring it ticks the notes and is all work",
+        "task": "Create step-by-step guides for clients",
         "owner": null,
-        "dueText": "at the end of today",
+        "dueText": null,
         "priority": "normal",
-        "quote": "when you submit it at the end of today, okay, so make sure it ticks those notes, make sure it's all work and all",
+        "quote": "I KNOW HOW TO DO IT WITH CLAUDE AND GROCKBOT AND STUFF LIKE THAT. BUT IF YOU GUYS CAN DO IT BETTER THAN ME, GO FOR IT.",
+        "timestamp": null
+      },
+      {
+        "task": "Develop a tool for client intake to onboarding",
+        "owner": null,
+        "dueText": null,
+        "priority": "normal",
+        "quote": "AGAIN, JUST WHEN YOU GET A CLIENT, WHEN YOU'RE ONBOARDING, HELPING DO FOLLOW-UP EMAILS OF ALL THE STUFF THAT'S MISSING THAT WE NEED.",
+        "timestamp": null
+      },
+      {
+        "task": "Develop a tool for inquiry to qualified handover",
+        "owner": null,
+        "dueText": null,
+        "priority": "normal",
+        "quote": "THIS IS THE ONE I REALLY LIKE. I TOLD YOU, ON HIS CALL, HE DOES HIS QUESTIONNAIRES, AND IT CAN WRITE THE PROPOSAL BEFORE HIS CALLS ENDED, AND IT SENDS IT TO DOCUSIGN, AND YOU CAN GET SOMEONE TO SIGN IT ON THEIR LONG CALL.",
+        "timestamp": null
+      },
+      {
+        "task": "Develop a tool for discovery to proposal",
+        "owner": null,
+        "dueText": null,
+        "priority": "normal",
+        "quote": "THIS IS THE ONE I REALLY LIKE. I TOLD YOU, ON HIS CALL, HE DOES HIS QUESTIONNAIRES, AND IT CAN WRITE THE PROPOSAL BEFORE HIS CALLS ENDED, AND IT SENDS IT TO DOCUSIGN, AND YOU CAN GET SOMEONE TO SIGN IT ON THEIR LONG CALL.",
+        "timestamp": null
+      },
+      {
+        "task": "Develop a tool for SAUCE DRIP",
+        "owner": null,
+        "dueText": null,
+        "priority": "normal",
+        "quote": "I'M GOING TO BUILD IT MYSELF ANYWAY. I HAVEN'T YET. THAT'S MY ONLY HINT, BUT THIS ONE WILL DEFINITELY BE USED.",
+        "timestamp": null
+      },
+      {
+        "task": "Develop a tool for evidence earning points",
+        "owner": null,
+        "dueText": null,
+        "priority": "normal",
+        "quote": "THIS IS HOW YOU'RE GOING TO BE RANKED, GUYS. SO WE NEED TO MAKE SURE IT'S USEFUL. WHATEVER YOU BUILD. I NEED, LIKE, IT NEEDS TO BE RELIABLE. NEEDS TO WORK, LIKE, BE FUNCTIONABLE. DEMONSTRATION. SO DON'T, LIKE I SAID, YOU CAN DO A LITTLE LOOM AT THE END, BECAUSE I DON'T WANT TO PUT THE PRESSURE ON YOU, BUT HOW YOU DEMO IT, I'M GOING TO SCORE THAT REALLY, REALLY GOOD TOO.",
         "timestamp": null
       },
       {
         "task": "Send Fathom recording and slides to Jaz, Yohan, and Francis",
-        "owner": "Josh",
+        "owner": "Josh Batalibasi",
         "dueText": null,
         "priority": "normal",
-        "quote": "ACTION ITEM: Send Fathom recording + slides to Jaz, Yohan, Francis",
+        "quote": "I'll send Fathom, and I'll send these slides",
         "timestamp": null
-      },
-      {
-        "task": "Create a shareable link for the slides",
-        "owner": "Josh",
-        "dueText": null,
-        "priority": "normal",
-        "quote": "I'll make this a shareable link for us",
-        "timestamp": "41:45"
       }
     ],
     "decisions": [
       {
-        "text": "The team will send a reply to Ruth confirming the video update by tomorrow night.",
-        "quote": "Reply to Ruth re: latest videos; confirm update by tomorrow night"
+        "text": "Presentations will be submitted via Zoom or Loom recording at the end of the competition tonight.",
+        "quote": "I'll take a Zoom or anything done by yourself or a Loom recording at the end of the whole comp tonight."
       },
       {
-        "text": "The team will remove Melissa’s admin rights, keep partner access, and send login steps matching Wendy’s email.",
-        "quote": "Remove Melissa’s Formula admin; keep partner access; send login steps (email match Wendy)"
-      },
-      {
-        "text": "The competition prize will be $250 cash, paid this week as an extra bonus.",
-        "quote": "It's going to be $250 no matter what, but even though it's called one tool, you have permission to do more than one"
-      },
-      {
-        "text": "Participants can build more than one tool for the competition.",
-        "quote": "even though it's called one tool, you have permission to do more than one"
-      },
-      {
-        "text": "The tools developed must be actual business tools that Leveric will use.",
-        "quote": "it's going to be an actual business tool that we're going to be using, so we need to take it seriously."
-      },
-      {
-        "text": "The tools should be low cost to run, ideally free or costing cents/dollars instead of tens/hundreds/thousands of dollars.",
-        "quote": "we just need to make sure it doesn't have to be free to run them. If we could do it for free, or like, you know, cents or dollars, instead of tens of dollars or hundreds or thousands of dollars, it's going to help us use these tools more."
-      },
-      {
-        "text": "The tools should be usable by $1,000 a month clients.",
-        "quote": "I want these tools to be able to be used by the $1,000 a month, so they're going to have to be very low cost."
+        "text": "Develop a tool for client intake to onboarding, inquiry to qualified handover, discovery to proposal, SAUCE DRIP, and evidence earning points.",
+        "quote": "THIS IS HOW YOU'RE GOING TO BE RANKED, GUYS. SO WE NEED TO MAKE SURE IT'S USEFUL. WHATEVER YOU BUILD. I NEED, LIKE, IT NEEDS TO BE RELIABLE. NEEDS TO WORK, LIKE, BE FUNCTIONABLE. DEMONSTRATION. SO DON'T, LIKE I SAID, YOU CAN DO A LITTLE LOOM AT THE END, BECAUSE I DON'T WANT TO PUT THE PRESSURE ON YOU, BUT HOW YOU DEMO IT, I'M GOING TO SCORE THAT REALLY, REALLY GOOD TOO."
       }
     ],
     "openQuestions": [
       {
-        "text": "Are there any other urgent obstacles?",
-        "quote": "Anything else urgent as well on those sides? or any other obstacles that we're thinking of?"
-      },
-      {
-        "text": "How will the meeting recordings be handled for the automatic summary tool?",
-        "quote": "How they record it? It's going to be up to you guys. That's where it gets a bit complicated because you've got to think a bit deeper. Is it going to be recorded natively on their phone and then just text it somewhere? Or is it going to be recorded only through their team's meeting notes?"
+        "text": "How to ensure the quality and reliability of the tools developed.",
+        "quote": "I NEED, LIKE, IT NEEDS TO BE RELIABLE. NEEDS TO WORK, LIKE, BE FUNCTIONABLE. DEMONSTRATION. SO DON'T, LIKE I SAID, YOU CAN DO A LITTLE LOOM AT THE END, BECAUSE I DON'T WANT TO PUT THE PRESSURE ON YOU, BUT HOW YOU DEMO IT, I'M GOING TO SCORE THAT REALLY, REALLY GOOD TOO."
       }
     ]
   },
   "cost": {
     "provider": "groq",
     "model": "openai/gpt-oss-120b",
-    "inputTokens": 13747,
-    "outputTokens": 4721,
+    "inputTokens": 13223,
+    "outputTokens": 2286,
     "costUsd": 0,
-    "estPaidUsd": 0.01184
+    "estPaidUsd": 0.00136
   },
-  "seconds": 20.739
+  "seconds": 92.437
 }

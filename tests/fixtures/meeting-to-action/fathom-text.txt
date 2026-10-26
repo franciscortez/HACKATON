@@ -1,0 +1,14 @@
+FIRMULA onboarding - Boardroom and Alumni - October 23
+VIEW RECORDING - 76 mins (No highlights): https://fathom.video/share/abc
+
+---
+
+0:00 - Speaker 1
+  If it doesn't tick at least one for the project, then we don't do it. Raj, can you import the weekly data by Friday?
+
+0:42 - Raj Patel
+  Yes, I'll import the prior weeks by Friday.
+  ACTION ITEM: Implement weekly data import for prior weeks/year - WATCH: https://fathom.video/calls/871181535?timestamp=1535.9999
+
+1:15:37 - Josh Batalibasi (Leveric)
+  Thank you.

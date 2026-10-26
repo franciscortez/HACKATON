@@ -1,6 +1,6 @@
 import type { ZodType } from "zod";
 import type { ProviderEntry } from "@/lib/ai/provider";
-import type { ClientConfig } from "@/schemas/client.schema";
+import type { Settings } from "@/schemas/settings.schema";
 import type { CostNote } from "@/types/run";
 
 export type ToolStatus = "LIVE" | "NEXT" | "PLANNED";
@@ -13,11 +13,19 @@ export interface ToolMeta {
   status: ToolStatus;
 }
 
+/** How far a run is: `done` of `total` steps, with a label for the person waiting. */
+export interface RunProgress {
+  done: number;
+  total: number;
+  label: string;
+}
+
 export interface RunContext {
-  client: ClientConfig;
+  settings: Settings;
   now: Date;
-  /** AI providers in fallback order, already filtered by the client's data policy. */
+  /** AI providers in fallback order, already filtered by the data policy. */
   providers: ProviderEntry[];
+  onProgress?: (progress: RunProgress) => void;
 }
 
 export interface RunResult<O> {

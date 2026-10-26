@@ -27,6 +27,25 @@ describe("parseTranscript: Fathom markdown", () => {
   });
 });
 
+describe("parseTranscript: Fathom plain-text export", () => {
+  const parsed = parseTranscript(fixture("fathom-text.txt"));
+
+  it("reads 'm:ss - Name' and 'h:mm:ss - Name' headers with indented text", () => {
+    expect(parsed.format).toBe("fathom");
+    expect(parsed.segments.map((s) => [s.timestamp, s.speaker])).toEqual([
+      ["0:00", "Speaker 1"],
+      ["0:42", "Raj Patel"],
+      ["1:15:37", "Josh Batalibasi (Leveric)"],
+    ]);
+    expect(parsed.segments[1].text).toContain("I'll import the prior weeks by Friday.");
+  });
+
+  it("collects ACTION ITEM lines without WATCH links and keeps links out of the prompt", () => {
+    expect(parsed.actionLines).toEqual(["Implement weekly data import for prior weeks/year"]);
+    expect(toPromptText(parsed.segments)).not.toContain("https://");
+  });
+});
+
 describe("parseTranscript: other formats", () => {
   it("reads WebVTT voice tags", () => {
     const parsed = parseTranscript(fixture("sample.vtt"));

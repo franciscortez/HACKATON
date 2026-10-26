@@ -80,3 +80,20 @@ body {
   .arrow-link .arrow { transition: none; }
   @keyframes reveal-fade { from { opacity: 0; } to { opacity: 1; } }
 }
+
+/* A flat block slides through the progress fill so a long step still looks alive */
+@keyframes sheen {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(340%); }
+}
+.progress-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  background: var(--color-blue);
+  animation: sheen 1.6s var(--ease-wipe) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .progress-fill::after { animation: none; }
+}

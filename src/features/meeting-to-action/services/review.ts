@@ -1,6 +1,6 @@
 import { templateEmail } from "@/features/meeting-to-action/services/email-template";
 import type { Action, MeetingOutput } from "@/features/meeting-to-action/types";
-import type { ClientConfig } from "@/schemas/client.schema";
+import type { Settings } from "@/schemas/settings.schema";
 
 /**
  * Applies a reviewer's register edit. Unless the reviewer has written the email by hand, the
@@ -9,8 +9,8 @@ import type { ClientConfig } from "@/schemas/client.schema";
 export function applyRegisterEdit(
   output: MeetingOutput,
   actions: Action[],
-  opts: { emailEdited: boolean; client: ClientConfig; title?: string },
+  opts: { emailEdited: boolean; settings: Settings; title?: string },
 ): MeetingOutput {
   const next = { ...output, actions };
-  return opts.emailEdited ? next : { ...next, email: templateEmail(next, opts.client, opts.title) };
+  return opts.emailEdited ? next : { ...next, email: templateEmail(next, opts.settings, opts.title) };
 }

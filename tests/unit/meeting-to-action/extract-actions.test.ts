@@ -2,7 +2,7 @@ import { MockLanguageModelV4 } from "ai/test";
 import { describe, expect, it } from "vitest";
 import { extractActions } from "@/features/meeting-to-action/services/extract-actions";
 import type { ProviderEntry } from "@/lib/ai/provider";
-import { getClient } from "@/services/clients";
+import { getSettings } from "@/services/settings";
 
 function countingModel(prompts: string[]) {
   return new MockLanguageModelV4({
@@ -41,7 +41,8 @@ describe("extractActions", () => {
     const { extraction, cost } = await extractActions({
       transcriptText,
       actionLines: ["Reply to Ruth"],
-      client: getClient("leveric")!,
+      people: ["Jaz"],
+      settings: getSettings(),
       meetingDate: "2026-10-26",
       providers,
     });
@@ -57,7 +58,8 @@ describe("extractActions", () => {
     await extractActions({
       transcriptText: "Jaz: I'll reply to Ruth.",
       actionLines: [],
-      client: getClient("leveric")!,
+      people: ["Jaz"],
+      settings: getSettings(),
       meetingDate: "2026-10-26",
       providers: [{ name: "ollama", model: "m", timeoutMs: 1000, maxOutputTokens: 2048, create: () => model }],
     });

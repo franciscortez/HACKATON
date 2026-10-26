@@ -7,18 +7,19 @@ import { cx } from "@/lib/utils";
 const FLAG_LABELS: Record<ActionFlag, string> = {
   "owner-unknown": "No owner said",
   "date-unknown": "No date said",
-  "owner-not-in-roster": "Owner not on roster",
+  "owner-not-in-transcript": "Owner not in meeting",
   ambiguous: "Quote not found",
 };
 
 interface Props {
   actions: Action[];
-  roster: string[];
+  /** People in the meeting: the owner choices. */
+  people: string[];
   onChange: (actions: Action[]) => void;
 }
 
 /** Editable action register. Each row shows the quote it came from and why it needs review. */
-export function ActionRegisterTable({ actions, roster, onChange }: Props) {
+export function ActionRegisterTable({ actions, people, onChange }: Props) {
   const update = (id: string, patch: Partial<Action>) => onChange(actions.map((a) => (a.id === id ? { ...a, ...patch } : a)));
   const remove = (id: string) => onChange(actions.filter((a) => a.id !== id));
   const add = () =>
@@ -87,7 +88,7 @@ export function ActionRegisterTable({ actions, roster, onChange }: Props) {
                 onChange={(e) => update(a.id, { owner: e.target.value })}
                 className={cx("border bg-white px-2 py-1.5 text-sm", a.owner === "Unassigned" ? "border-warn text-warn" : "border-rule-l")}
               >
-                {[...roster, "Unassigned"].map((name) => (
+                {[...new Set([...people, a.owner, "Unassigned"])].map((name) => (
                   <option key={name} value={name}>
                     {name}
                   </option>

@@ -1,0 +1,10 @@
+{
+  "name": "Leveric",
+  "region": "AU",
+  "brand": {
+    "voice": "Direct, plain and friendly. Short sentences. Australian spelling.",
+    "signOff": "Cheers, Josh"
+  },
+  "rules": ["Only list work people agreed to do; skip personal chat."],
+  "dataPolicy": "cloud-ok"
+}
