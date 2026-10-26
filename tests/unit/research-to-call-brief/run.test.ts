@@ -14,9 +14,9 @@ const model={companyName:{text:"Example",evidenceId:"e1"},city:null,industry:nul
 beforeEach(()=>{vi.clearAllMocks();vi.mocked(generateLocal).mockResolvedValue({object:model,cost});vi.mocked(preflightOllama).mockResolvedValue(undefined);});
 const context=()=>({settings:getSettings(),now:new Date(),providers:[]});
 const input=(extra={})=>researchToCallBrief.inputSchema.parse({companyUrl:"https://example.com/",pastedText:"Example makes websites.",...extra});
-test("defaults to Ollama and pasted material makes no external calls",async()=>{
+test("explicit local mode and pasted material make no external calls",async()=>{
  const fetcher=vi.spyOn(globalThis,"fetch").mockRejectedValue(new Error("unexpected network"));
- const result=await researchToCallBrief.run(input(),context());
+ const result=await researchToCallBrief.run(input({aiMode:"local"}),context());
  expect(result.output.companyName?.text).toBe("Example");expect(result.output.dossier.services).toHaveLength(1);expect(fetcher).not.toHaveBeenCalled();fetcher.mockRestore();
 });
 test("local-only blocks scraping before model preflight",async()=>{
@@ -24,17 +24,33 @@ test("local-only blocks scraping before model preflight",async()=>{
 });
 test("preflight failure happens before any paid collection",async()=>{
  vi.mocked(preflightOllama).mockRejectedValue(new Error("missing"));const fetcher=vi.spyOn(globalThis,"fetch").mockRejectedValue(new Error("unexpected network"));
- await expect(researchToCallBrief.run(input({pastedText:""}),context())).rejects.toThrow();expect(fetcher).not.toHaveBeenCalled();fetcher.mockRestore();
+ await expect(researchToCallBrief.run(input({pastedText:"",aiMode:"local"}),context())).rejects.toThrow();expect(fetcher).not.toHaveBeenCalled();fetcher.mockRestore();
 });
 test("signed retry retains original charge without scraping or DNS",async()=>{
  vi.stubEnv("APIFY_API_KEY","test-secret");const source={id:"s1",url:"https://example.com/",title:"Example",text:"Example makes websites.",fetchedAt:new Date().toISOString(),origin:"web" as const};
  const recoveryToken=sealResearch({companyUrl:source.url,sources:[source],brand:emptyBrand(),gaps:[],collectedAt:source.fetchedAt,usage:{costUsd:.01,reservedUsd:.1,maxUsd:.1,runIds:["original"]}},"test-secret");
  const fetcher=vi.spyOn(globalThis,"fetch").mockRejectedValue(new Error("unexpected network"));
- const result=await researchToCallBrief.run(input({pastedText:"",recoveryToken}),context());expect(result.cost.research?.costUsd).toBe(.01);expect(fetcher).not.toHaveBeenCalled();fetcher.mockRestore();vi.unstubAllEnvs();
+ const result=await researchToCallBrief.run(input({pastedText:"",recoveryToken,aiMode:"local"}),context());expect(result.cost.research?.costUsd).toBe(.01);expect(fetcher).not.toHaveBeenCalled();fetcher.mockRestore();vi.unstubAllEnvs();
 });
 test("empty evidence is an explicit incomplete result, not silent success",async()=>{
  vi.mocked(generateLocal).mockResolvedValue({object:{...model,companyName:null,services:[],opportunities:[]},cost});
- await expect(researchToCallBrief.run(input(),context())).rejects.toMatchObject({code:"insufficient_evidence"});
+ await expect(researchToCallBrief.run(input({aiMode:"local"}),context())).rejects.toMatchObject({code:"insufficient_evidence"});
+});
+
+test("default mode uses cloud generation without local preflight",async()=>{
+ vi.mocked(generateStructured).mockResolvedValue({object:model,cost:{...cost,provider:"groq"}});
+ const result=await researchToCallBrief.run(input(),context());
+ expect(input().aiMode).toBe("auto");
+ expect(result.cost.provider).toBe("groq");
+ expect(generateStructured).toHaveBeenCalled();
+ expect(preflightOllama).not.toHaveBeenCalled();
+ expect(generateLocal).not.toHaveBeenCalled();
+});
+
+test("local-only policy overrides the cloud default",async()=>{
+ await researchToCallBrief.run(input(),{...context(),settings:{...getSettings(),dataPolicy:"local-only"}});
+ expect(generateLocal).toHaveBeenCalled();
+ expect(generateStructured).not.toHaveBeenCalled();
 });
 
 test("Auto cloud failure uses the same native Ollama transport",async()=>{

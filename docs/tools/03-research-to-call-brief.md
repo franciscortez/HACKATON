@@ -26,7 +26,7 @@ Network checks use Chromium request-stage interception for each redirect and sub
 
 Current integration plan: `../superpowers/plans/2026-10-26-research-integration.md`.
 - Runs use main's NDJSON progress/result/error contract, with an additional research event carrying a signed recovery snapshot.
-- `aiMode` defaults to local Ollama; Auto is explicit. Local-only workspace policy overrides Auto and prevents new crawling.
+- `aiMode` defaults to Auto: Groq, then Gemini, with Ollama fallback. Local Ollama remains selectable. Local-only workspace policy selects local processing and prevents new crawling.
 - Model facts select numbered source extracts. Original source text supplies quotations; unsupported IDs and metadata are rejected. Missing offerings produces an explicit incomplete-research error.
 - Availability/model preflight happens before paid collection. Recovery snapshots expire after 24 hours and are signed with a domain-separated HMAC derived from the Apify key. Requests are bounded to 256 KiB. Retrying generation does not scrape, resolve source DNS or consume another research count.
 - Recovery captures published web text, measurements and original usage. The browser retains it across reloads; new research explicitly replaces it. Expired snapshots never trigger an automatic crawl.

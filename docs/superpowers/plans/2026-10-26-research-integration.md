@@ -1,5 +1,8 @@
 # Research integration implementation plan
 
+## Follow-up: cloud default (26 October 2026)
+User requested Groq or Gemini as the default AI processing mode. Set the UI and input-schema defaults to Auto, label the option with both providers, retain Ollama fallback and the local-only policy override, update existing regression coverage, and verify the research screen in the browser. This supersedes the original local-default decision below.
+
 Goal: integrate Tool 03 into current main, make Ollama the default, preserve research for retries, and publish a ready PR.
 Spec: ../specs/2026-10-26-research-integration.md
 Execution: Superpowers executing-plans, inline with one final independent review. User explicitly authorised commits, push and PR by requesting implementation of this plan. No merge to main or deployment.

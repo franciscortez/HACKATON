@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/tools/research-to-call-brief");
 });
 test("URL alone produces dossier and reviewed call sheet for the workspace", async ({ page }) => {
-  await expect(page.getByLabel("AI processing", { exact: true })).toHaveValue("local");
+  await expect(page.getByLabel("AI processing", { exact: true })).toHaveValue("auto");
   await page.getByLabel("Business URL", { exact: true }).fill("example.com");
   await page.getByRole("button", { name: "Research website", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Website brand", exact: true })).toBeVisible();

@@ -36,7 +36,7 @@ export function ResearchWorkbench() {
 }
 function ResearchWorkspace() {
   const settings=getSettings();
-  const [aiMode,setAiMode]=useState<"local"|"auto">("local");
+  const [aiMode,setAiMode]=useState<"local"|"auto">(settings.dataPolicy === "local-only" ? "local" : "auto");
   const [progress,setProgress]=useState("");
   const [recovery,setRecovery]=useState<Recovery|null>(()=>{const parsed=recoverySchema.safeParse(safeGet(recoveryKey,null));return parsed.success?parsed.data:null;});
   const [companyUrl, setUrl] = useState(""), [pastedText, setPasted] = useState("");
@@ -120,7 +120,7 @@ function ResearchWorkspace() {
     <form onSubmit={event=>void run(event)} className="dossier-start" aria-label="Business research source" aria-busy={running}>
       <label htmlFor="research-url">Business URL</label><div className="dossier-url-row"><input id="research-url" required type="text" inputMode="url" autoComplete="url" maxLength={2048} value={companyUrl} onChange={e => setUrl(e.target.value)} placeholder="Paste a website, e.g. business.com.au" disabled={running} /><button type="submit" disabled={running || (!pastedText.trim() && used >= cap)} className="dossier-primary">{running ? `Researching · ${elapsed}s` : "Research website"}</button></div>
       <div className="dossier-meta"><p className="dossier-note">{settings.dataPolicy === "local-only" ? "Local-only: paste source text. No website or cloud access." : `Public pages only · US$${settings.research.maxRunUsd.toFixed(2)} target, not a guaranteed ceiling.`}</p><p className="dossier-note">{used} / {cap} research runs · browser counter</p></div>
-      <label className="dossier-history">AI processing<select aria-label="AI processing" value={aiMode} disabled={running||settings.dataPolicy==="local-only"} onChange={e=>setAiMode(e.target.value as "local"|"auto")}><option value="local">Local Ollama</option><option value="auto">Auto: cloud, then local</option></select></label>
+      <label className="dossier-history">AI processing<select aria-label="AI processing" value={aiMode} disabled={running||settings.dataPolicy==="local-only"} onChange={e=>setAiMode(e.target.value as "local"|"auto")}><option value="local">Local Ollama</option><option value="auto">Auto: Groq / Gemini</option></select></label>
       <p className="dossier-note">{aiMode==="local"?"AI stays on the app server. URL scraping still uses Apify; paste text for fully local processing.":"Auto may send source text to Groq or Gemini."}</p>
       <details className="dossier-paste" open={showPaste} onToggle={e => setShowPaste(e.currentTarget.open)}><summary>Paste source text instead</summary><label>Pasted source text<textarea aria-label="Pasted source text" rows={6} maxLength={40000} value={pastedText} onChange={e => setPasted(e.target.value)} disabled={running} /></label><p>{pastedText.length.toLocaleString("en-AU")} / 40,000 characters. Pasted text skips Apify; visual branding is unavailable.</p></details>
     </form>
