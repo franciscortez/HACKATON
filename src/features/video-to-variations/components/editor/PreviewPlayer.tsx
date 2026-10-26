@@ -123,6 +123,14 @@ export function PreviewPlayer({
               else videos.current.delete(m.id);
             }}
             src={src(m.id)}
+            crossOrigin="anonymous"
+            onLoadedMetadata={(e) => {
+              const at = toSource(timeline, Math.min(playhead, total));
+              if (at && timeline.clips[at.clipIndex].mediaId === m.id) {
+                e.currentTarget.currentTime = at.sourceS;
+                if (playing) void e.currentTarget.play().catch(() => onPlayingChange(false));
+              }
+            }}
             playsInline
             preload="auto"
             className="absolute inset-0 h-full w-full"

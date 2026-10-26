@@ -9,6 +9,7 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
+    ".next-video-connector/**",
     ".superpowers/**",
     "test-results/**",
     "tests/artifacts/**",

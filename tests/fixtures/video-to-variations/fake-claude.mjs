@@ -8,6 +8,10 @@ import { fileURLToPath } from "node:url";
 
 const args = process.argv.slice(2);
 const here = dirname(fileURLToPath(import.meta.url));
+if (args[0] === "auth" && args[1] === "status") {
+  process.stdout.write(JSON.stringify({ loggedIn: true, authMethod: "claude.ai" }));
+  process.exit(0);
+}
 const state = process.env.FAKE_CLAUDE_STATE;
 const call = state && existsSync(state) ? Number(readFileSync(state, "utf8")) : 0;
 if (state) writeFileSync(state, String(call + 1));

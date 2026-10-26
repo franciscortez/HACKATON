@@ -4,6 +4,7 @@ import { isAbsolute, join, relative, resolve } from "node:path";
 import { projectSchema } from "@/features/video-to-variations/schemas/project.schema";
 import { timelineSchema } from "@/features/video-to-variations/schemas/timeline.schema";
 import { emptyTimeline } from "@/features/video-to-variations/services/timeline";
+import { operationContext } from "@/features/video-to-variations/services/operation-context";
 import type { Media, Project, TimeRange, Timeline, Version } from "@/features/video-to-variations/types";
 
 export type Workspace = ReturnType<typeof createWorkspace>;
@@ -89,13 +90,22 @@ export function createWorkspace(root: string) {
    * Saves a new version and makes it current. A change made after an undo drops the versions that were ahead
    * of it (the redo branch), like any editor.
    */
-  async function writeTimeline(id: string, t: Timeline, meta: { source: Version["source"]; label: string; summary?: string | null; changedRange?: TimeRange | null }): Promise<number> {
+  async function writeTimeline(id: string, t: Timeline, meta: { source: Version["source"]; label: string; summary?: string | null; changedRange?: TimeRange | null; media?: Media }): Promise<number> {
     const p = await mustGet(id);
     const kept = p.versions.filter((v) => v.n <= p.current);
     const n = (kept.at(-1)?.n ?? 0) + 1;
     await writeFile(path(id, "timeline", `${versionName(n)}.json`), JSON.stringify(t, null, 2));
     p.versions = [...kept, { n, source: meta.source, label: meta.label, summary: meta.summary ?? null, changedRange: meta.changedRange ?? null, createdAt: new Date().toISOString() }];
+    p.revision = (p.revision ?? p.current) + 1;
     p.current = n;
+    if (meta.media) p.media = [...p.media.filter((m) => m.id !== meta.media!.id), meta.media];
+    const operationId = operationContext.getStore()?.operationId;
+    if (operationId) {
+      await mkdir(path(id, "jobs"), { recursive: true });
+      const timelineFile = `${operationId}.timeline.json`;
+      await writeFile(path(id, "jobs", timelineFile), JSON.stringify(t));
+      p.completedOperations = { ...p.completedOperations, [operationId]: { version: n, timelineFile, summary: meta.summary, changedRange: meta.changedRange, mediaId: meta.media?.id } };
+    }
     if (meta.source !== "upload") p.status = "EDITED";
     await save(p);
     return n;
@@ -108,6 +118,7 @@ export function createWorkspace(root: string) {
   async function setCurrent(id: string, n: number): Promise<Project> {
     const p = await mustGet(id);
     if (!p.versions.some((x) => x.n === n)) throw new Error("Version not found.");
+    p.revision = (p.revision ?? p.current) + 1;
     p.current = n;
     await save(p);
     return p;

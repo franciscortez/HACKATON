@@ -124,3 +124,7 @@ Usage examples: `bg-field text-ink`, `font-mono uppercase tracking-label text-xs
 ## 11. Tool 03 dossier refinement
 
 The URL-only research screen uses a compact 24?32px title, a single URL/action row and a white flowing report with a desktop evidence rail. Brand colours, Geist and Geist Mono, square controls and shell labels remain authoritative. The Framed Sheet app direction supplies composition only; no analytics charts or decorative metric tiles are introduced. At 1000px the evidence rail stacks; at 600px form and brand columns stack. Body copy is 16px with 1.6 line height, controls have at least 44px targets, and motion is control feedback only. Captured prospect colours are data, not application theme changes.
+
+## Video connector connection states
+
+The hosted video page uses a bordered setup panel with pairing code, explicit local port, dependency instructions and a concise data-flow explanation. Once paired, the normal editor stays in place with computer/Claude readiness and Disconnect controls. Claude unavailability disables prompting while retaining manual editing. Connection failures stay visible; signed media URLs renew on a timer and when the tab becomes visible.

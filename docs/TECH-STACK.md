@@ -96,3 +96,7 @@ Developer Apify MCP 0.19.3 is installed outside the app on this machine. Its lau
 Tool 03 defaults to native Ollama `/api/chat` with JSON-schema format, explicit 8192-token context and 2500-token output bound. It uses the existing model and server URL (normalising the legacy `/v1` suffix), without changing Tool 01's OpenAI-compatible provider. Cloud Auto is opt-in. Browser recovery is stateless, HMAC-signed and retained for 24 hours; no new dependency or database is required.
 
 Hosted Ollama may use an authenticated HTTPS ngrok endpoint. Optional server-only `OLLAMA_AUTHORIZATION` is sent by both adapters, including the research preflight. Vercel uses the endpoint plus `/v1`; local development can keep the loopback URL. The ngrok policy authenticates callers, rewrites Host to localhost, strips credentials before forwarding and permits only model-list/generation routes. The PC and tunnel must remain online.
+
+## Hosted video connector preview
+
+No new package dependency. The local production Next runtime uses Node 24, FFmpeg/ffprobe and faster-whisper with a pre-cached small model. Claude Code 2.1.310+ is required for the read boundary: Read/Glob only, reads outside the project working directory blocked, hooks and external MCP disabled. Native subscription sign-in remains local; API/provider environment overrides block Claude readiness. Codex is disabled pending approved commercial authentication. Browser support targets Chrome-family desktop browsers on Windows/macOS; macOS still needs execution evidence.

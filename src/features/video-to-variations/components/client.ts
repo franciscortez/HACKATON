@@ -1,3 +1,5 @@
+import { connectorFetch, connectorSession, refreshAssets, assetUrl } from "@/features/video-to-variations/components/connector-client";
+import { projectSchema } from "@/features/video-to-variations/schemas/project.schema";
 import type { ClaudeModel, Media, Project, TimeRange, Timeline, Word } from "@/features/video-to-variations/types";
 import type { RunProgress } from "@/types/tool";
 
@@ -18,21 +20,43 @@ type StreamEvent = ({ type: "progress" } & RunProgress) | ({ type: "result" } & 
 
 const base = "/api/video-projects";
 
+const versions = new Map<string, number>();
+function versioned(url: string, init: RequestInit = {}): RequestInit {
+  const id = url.split("/")[3];
+  const headers = new Headers(init.headers);
+  if (id && versions.has(id) && init.method && init.method !== "GET") headers.set("X-Expected-Version", String(versions.get(id)));
+  return { ...init, headers };
+}
+async function prepare(data: unknown) {
+  if (!data || typeof data !== "object" || !("project" in data)) return;
+  const project = projectSchema.parse(data.project);
+  versions.set(project.id, project.revision ?? project.current);
+  const file = "file" in data && typeof data.file === "string" ? data.file : undefined;
+  await refreshAssets(project, file);
+}
+
 async function errorOf(res: Response): Promise<ApiError> {
   const body = (await res.json().catch(() => null)) as { error?: ApiError } | null;
   return body?.error ?? { code: "request_failed", message: "The request failed. Try again." };
 }
 
 async function call<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, { cache: "no-store", ...init });
+  const res = await connectorFetch(url, versioned(url, { cache: "no-store", ...init }));
   if (!res.ok) throw await errorOf(res);
-  return res.json() as Promise<T>;
+  const data = await res.json();
+  await prepare(data);
+  return data as T;
 }
 
 /** Sends a request whose answer is an NDJSON stream; resolves with the result event or throws the error event. */
 async function stream<T>(url: string, init: RequestInit, onProgress: (p: RunProgress) => void): Promise<T> {
-  const res = await fetch(url, init);
-  if (!res.ok || !res.body) throw await errorOf(res);
+  const operationId = crypto.randomUUID();
+  const headers = new Headers(init.headers); headers.set("Idempotency-Key", operationId);
+  const projectId = url.split("/")[3];
+  const pendingKey = `vtv:pending:${connectorSession()?.connectorId ?? "local"}:${projectId}`;
+  if (connectorSession()) sessionStorage.setItem(pendingKey, operationId);
+  const res = await connectorFetch(url, versioned(url, { ...init, headers }));
+  if (!res.ok || !res.body) { if (connectorSession()) sessionStorage.removeItem(pendingKey); throw await errorOf(res); }
   const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
   let buffer = "";
   let result: Record<string, unknown> | null = null;
@@ -53,8 +77,10 @@ async function stream<T>(url: string, init: RequestInit, onProgress: (p: RunProg
     lines.forEach(handle);
   }
   handle(buffer);
-  if (failure) throw failure;
+  if (failure) { if (connectorSession()) sessionStorage.removeItem(pendingKey); throw failure; }
   if (!result) throw { code: "no_result", message: "The job stopped without an answer. Try again." } satisfies ApiError;
+  await prepare(result);
+  if (connectorSession()) sessionStorage.removeItem(pendingKey);
   return result as T;
 }
 
@@ -62,11 +88,12 @@ const json = (method: string, body: unknown): RequestInit => ({ method, headers:
 
 export const videoApi = {
   async health(): Promise<ApiError | null> {
-    const res = await fetch(`${base}/health`, { cache: "no-store" });
+    const res = await connectorFetch(`${base}/health`, { cache: "no-store" });
     return res.ok ? null : errorOf(res);
   },
   create: () => call<{ project: Project; timeline: Timeline }>(base, json("POST", {})),
   get: (id: string) => call<ProjectView>(`${base}/${id}`),
+  operation: (id: string, operationId: string) => call<{ state: string; error?: ApiError; result?: { file?: string } }>(`${base}/${id}/jobs/${operationId}`),
   rename: (id: string, name: string) => call<{ project: Project }>(`${base}/${id}`, json("PUT", { name })),
   importVideo: (id: string, file: File, onProgress: (p: RunProgress) => void) =>
     stream<{ project: Project; timeline: Timeline; media: Media }>(`${base}/${id}/media`, { method: "POST", headers: { "x-file-name": encodeURIComponent(file.name) }, body: file }, onProgress),
@@ -76,11 +103,11 @@ export const videoApi = {
   restore: (id: string, n: number) => call<{ project: Project; timeline: Timeline }>(`${base}/${id}/versions/${n}`, { method: "POST" }),
   exportVideo: (id: string, onProgress: (p: RunProgress) => void) => stream<{ project: Project; file: string }>(`${base}/${id}/export`, { method: "POST" }, onProgress),
   async saveStyle(id: string, text: string): Promise<void> {
-    const res = await fetch(`${base}/${id}/style`, { method: "PUT", body: text });
+    const res = await connectorFetch(`${base}/${id}/style`, versioned(`${base}/${id}/style`, { method: "PUT", body: text }));
     if (!res.ok) throw await errorOf(res);
   },
-  mediaFile: (id: string, mediaId: string, file: string) => `${base}/${id}/media/${mediaId}/${file}`,
-  exportFile: (id: string, file: string) => `${base}/${id}/exports/${file}`,
+  mediaFile: (id: string, mediaId: string, file: string) => assetUrl(`${base}/${id}/media/${mediaId}/${file}`),
+  exportFile: (id: string, file: string) => assetUrl(`${base}/${id}/exports/${file}`),
 };
 
 /** m:ss.s for a time in seconds. */
