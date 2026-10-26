@@ -11,3 +11,13 @@ export function listClients(): ClientConfig[] {
 export function getClient(id: string): ClientConfig | null {
   return clients.find((c) => c.id === id) ?? null;
 }
+
+/** Client config without contact details, safe to send to the browser. */
+export function toPublicClient(client: ClientConfig) {
+  return {
+    ...client,
+    team: client.team.map((m) => ({ name: m.name, aliases: m.aliases, role: m.role, slack: m.slack })),
+  };
+}
+
+export type PublicClient = ReturnType<typeof toPublicClient>;
