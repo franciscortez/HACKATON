@@ -1,0 +1,61 @@
+# Tech stack: Leveric Workbench
+
+Goal: every tool runs for about $0 per run on free tiers, with a local fallback, so Leveric can include 15-20 tools in a $1,000/month plan without a variable cost that grows out of control (Josh, transcript 41:45).
+
+## Summary
+| Layer | Choice | Why | Cost |
+|---|---|---|---|
+| Framework | Next.js (App Router), TypeScript, strict mode | User's choice; server routes keep API keys off the client; deploys to Vercel in one step | $0 |
+| Styling | Tailwind CSS v4 with `@theme` tokens from `DESIGN.md` | User's choice; one token file keeps every tool on brand | $0 |
+| UI primitives | shadcn/ui (Radix), restyled to Leveric tokens | Accessible dialog, tabs, dropdown, toast without designing from scratch | $0 |
+| Fonts | `geist` package (Geist, Geist Mono) | Same fonts as leveric.ai | $0 |
+| Validation | Zod | One schema per tool for inputs, model output and exports | $0 |
+| AI layer | Vercel AI SDK (`ai`) with `generateObject` / `streamObject` | One API across providers; structured output validated by Zod | $0 |
+| LLM default | Groq free tier (Llama 3.3 70B class) | Fast, free, good at extraction | $0 within free limits |
+| LLM second | Google Gemini free tier (Flash class) | Long context (whole meetings), free | $0 within free limits |
+| LLM fallback | Ollama local (7-8B instruct model, Q4) | Offline, private, no rate limit | Electricity only |
+| Speech to text | Groq Whisper (large-v3-turbo) free tier; local faster-whisper fallback | Free, accurate; local copy already installed via the `video-editing` toolchain | $0 |
+| Video (tools 06, 10) | FFmpeg, faster-whisper, HyperFrames (from the `video-editing` skill) | Already installed globally on this machine | $0, CPU time |
+| Storage | Client configs as JSON in repo; runs and approvals in browser storage | No database to set up or pay for in a one-day build | $0 |
+| Hosting | Vercel Hobby | Free, preview URLs for judging | $0 |
+| Tests | Vitest for schemas and pure logic; Playwright for one end-to-end path per tool | Proves "fresh input, reliable output" | $0 |
+
+## AI providers in detail
+
+### Provider chain
+`Groq -> Gemini -> Ollama`. The first provider that is configured and not rate-limited handles the run. The UI's cost note always names the provider and model that produced the output.
+
+| Provider | Package | Env vars | Notes |
+|---|---|---|---|
+| Groq | `@ai-sdk/groq` | `GROQ_API_KEY` | Free tier has per-minute and per-day token limits. Also serves Whisper for audio. |
+| Gemini | `@ai-sdk/google` | `GOOGLE_GENERATIVE_AI_API_KEY` | Free tier may use prompts for training: do not send client data marked confidential to it. |
+| Ollama | `ollama-ai-provider` (community) or OpenAI-compatible endpoint | `OLLAMA_BASE_URL` (default `http://localhost:11434`) | Only works when the app runs on a machine with Ollama. Not available on Vercel. |
+
+### Model IDs
+Free-tier model names change often. Keep them in one file (`lib/ai/models.ts`) and check them on the build day against the providers' model lists. Starting points:
+- Groq: `llama-3.3-70b-versatile` (text), `whisper-large-v3-turbo` (audio).
+- Gemini: current free Flash model (for example `gemini-2.5-flash`).
+- Ollama: `qwen2.5:7b-instruct` or `llama3.1:8b` at Q4.
+
+### Local model on this machine
+- GPU: AMD Radeon RX 6650 XT, 8 GB VRAM, no CUDA.
+- Ollama on Windows: use the Vulkan backend (or LM Studio, which also exposes an OpenAI-compatible server). If the GPU is not used, a 7B Q4 model on CPU still works, but slowly (expect about 1 minute or more per meeting).
+- faster-whisper runs on the CPU (int8). Use model `small` for speed, `medium` for accuracy.
+
+## Cost controls
+- Per-client monthly run cap in the client config (`usage.runsPerMonth`). The app shows `RUNS used / cap` and blocks runs over the cap with a "request more runs" message (Josh's idea: "only allowed to use the tool three times before emailing to ask for more").
+- Input size cap per tool (for example, 60 minutes of audio or 120k characters of transcript).
+- Cost note per run: provider, model, input and output tokens, estimated cost at paid rates (so the cost if the free tier ends is visible), actual cost now.
+- No paid scraping in phase 1. Apify (cents per scrape) is allowed later for research tools, behind a per-client budget.
+
+## Secrets
+- Keys only in `.env.local` (git-ignored) and Vercel environment variables.
+- `.env.example` lists names with empty values.
+- No keys in client JSON, logs, exports or the handover.
+
+## What is not in the stack (phase 1)
+- No database, auth or payments. Add Supabase later if tools need shared history across users.
+- No automatic sending (email, Slack, Asana). Exports are copy or download only. Integrations come after approval flows are proven.
+
+## Versions
+Pin exact versions in `package.json` when the project is scaffolded. Use the current stable Next.js and Tailwind v4 at that time; record the versions here after scaffolding.
