@@ -18,7 +18,8 @@ Goal: every tool runs for about $0 per run on free tiers, with a local fallback,
 | Video (tools 06, 10) | FFmpeg, faster-whisper, HyperFrames (from the `video-editing` skill) | Already installed globally on this machine | $0, CPU time |
 | Storage | Client configs as JSON in repo; runs and approvals in browser storage | No database to set up or pay for in a one-day build | $0 |
 | Hosting | Vercel Hobby | Free, preview URLs for judging | $0 |
-| Tests | Vitest for schemas and pure logic; Playwright for one end-to-end path per tool | Proves "fresh input, reliable output" | $0 |
+| API | REST endpoints as App Router route handlers in `app/api/` (no Server Actions for data) | One clear, testable server boundary; keys stay on the server | $0 |
+| Tests | Vitest for unit and API tests; Playwright for one end-to-end path per tool; all in top-level `tests/` (see `TESTING.md`) | Proves "fresh input, reliable output" | $0 |
 
 ## AI providers in detail
 
