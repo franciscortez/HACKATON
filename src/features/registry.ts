@@ -8,7 +8,7 @@ const tools: ToolMeta[] = [
   { slug: "research-to-call-brief", index: "03", name: "Research to call brief", summary: "One website URL to a business dossier, visual brand overview and call sheet.", status: "LIVE" },
   { slug: "url-to-social-content", index: "04", name: "URL to social content", summary: "A public page and brand to three posts and a caption.", status: "PLANNED" },
   { slug: "brief-to-landing-page", index: "05", name: "Brief to landing page", summary: "Offer brief, approved proof and brand to a responsive page draft.", status: "PLANNED" },
-  { slug: "video-to-variations", index: "06", name: "Source video to variations", summary: "Owned video and hooks to three captioned short variations.", status: "PLANNED" },
+  { slug: "video-to-variations", index: "06", name: "Source video to variations", summary: "Owned video to a captioned short, edited by asking or by hand.", status: "LIVE" },
   { slug: "enquiry-to-handover", index: "07", name: "Enquiry to qualified handover", summary: "Enquiry and fit rules to a qualification and reply draft.", status: "PLANNED" },
   { slug: "discovery-to-proposal", index: "08", name: "Discovery to proposal", summary: "Discovery notes and approved catalogue to a proposal draft.", status: "PLANNED" },
   { slug: "intake-to-onboarding", index: "09", name: "Client intake to onboarding", summary: "Intake and checklist to gaps, kickoff agenda and welcome email.", status: "PLANNED" },

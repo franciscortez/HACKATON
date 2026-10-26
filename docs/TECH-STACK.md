@@ -60,6 +60,15 @@ Uses native server-side `fetch` to the official Apify Playwright Scraper. A fixe
 
 Developer Apify MCP 0.19.3 is installed outside the app on this machine. Its launcher loads `.env.local` explicitly and maps `APIFY_API_KEY` to `APIFY_TOKEN`; the token is absent from MCP configuration and command arguments. A new agent session may be required to expose newly registered tools.
 
+## Tool 06 additions (26 October 2026)
+
+- **Claude Code exception to the free-model rule.** Tool 06 uses the locally installed Claude Code CLI under the user's own Claude subscription. No API keys, no per-call billing, no credentials handled by the app. Local only. Other tools keep Groq, then Gemini, then Ollama.
+- The CLI runs headless: `claude -p --output-format stream-json --verbose --json-schema <file> --model <opus|sonnet> --allowedTools Read Glob`. Never `--bare` (it skips the subscription sign-in).
+- FFmpeg 9 (needs `ass`, `loudnorm`, `silencedetect`) and faster-whisper `small` (CPU int8) from the `video-editing` toolchain.
+- It runs as a normal Workbench tool at `/tools/video-to-variations` when the app runs on a computer with these tools (`pnpm dev`). No desktop wrapper (user decision, 26 Oct 2026).
+- Environment (all optional): `VIDEO_WORKSPACE` (default `%USERPROFILE%/LevericWorkbench/video`), `VIDEO_CLAUDE_BIN` (default `claude`), `VIDEO_FFMPEG_BIN` / `VIDEO_FFPROBE_BIN` (default `ffmpeg` / `ffprobe`), `VIDEO_PYTHON` (default `~/.video-tools/venv/Scripts/python.exe`).
+- On Vercel (`VERCEL` set) tool 06 answers 503 `local_only`.
+
 ## What is not in the stack (phase 1)
 - No database, auth or payments. Add Supabase later if tools need shared history across users.
 - No automatic sending (email, Slack, Asana). Exports are copy or download only. Integrations come after approval flows are proven.

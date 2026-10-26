@@ -83,6 +83,11 @@ Each feature's `index.ts` exports one object that matches the shared contract in
 - Workspace settings: `src/data/settings.json`, read-only, validated at load.
 - Runs and run counter: browser storage in phase 1 (can be cleared by the user; known limit).
 
+- Tool 06 (local only) keeps each edit in a local workspace folder (`VIDEO_WORKSPACE`): `project.json`, `timeline/vNNN.json` versions, `style.md`, `exports/`, and per imported video `media/<mN>/` (original, proxy, thumbnails, frames, waveform, transcript, pauses). Nothing is uploaded anywhere; Claude Code reads transcripts and frames from that folder.
+
+## 7b. Tool 06 local routes
+Tool 06 is a video editor, so it does not use the generic runs route. An edit holds several imported videos and a versioned `Timeline` JSON; imports, hand edits and Claude edits all save new versions. Routes in `app/api/video-projects/`: POST (new empty edit), GET/PUT `[id]` (edit + current timeline + words per video; rename), POST `[id]/media` (import a streamed file, NDJSON), GET `[id]/media/[mediaId]/[file]` (proxy with HTTP Range, thumbnails, waveform), PUT `[id]/timeline` (hand edit), POST `[id]/prompt` (Claude, NDJSON), POST `[id]/versions/[n]` (undo/redo target), POST `[id]/export` (NDJSON render; 409 `empty_timeline`), GET `[id]/exports/[file]`, PUT `[id]/style`. Every route first calls a local gate and answers 503 `local_only` on Vercel, or `claude_missing` / `ffmpeg_missing` / `python_missing`. One long job (import, prompt, export) per edit at a time (409 `job_running`).
+
 ## 8. Security
 - API keys only in route handlers and env vars; never sent to the browser.
 - No client content in logs; uploads processed in memory, not stored.
