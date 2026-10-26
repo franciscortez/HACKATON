@@ -69,9 +69,11 @@ Check the deployment commit and Ready status in Vercel before sharing its produc
 Security controls, reporting and current limitations: [docs/SECURITY.md](docs/SECURITY.md).
 
 
-## Hosted video editor: local connector preview
+## Hosted video editor: local connector
 
-The Vercel page can control a connector on the same computer. FFmpeg, Python, project files and the unmodified Claude Code CLI run locally. Original videos and renders do not pass through Vercel; Claude receives prompts, transcripts and selected still frames. Subscription limits apply. This preview supports a desktop Chrome-family browser; macOS remains an unverified rollout gate. Codex is disabled pending approved commercial authentication.
+The Vercel page can control a connector on the same computer. FFmpeg, Python, project files and the unmodified Claude Code CLI run locally. Original videos and renders do not pass through Vercel; Claude receives prompts, transcripts and selected still frames. Subscription limits apply. The hosted editor supports a desktop Chrome-family browser. Windows was verified against production; macOS instructions are available but have not been executed on macOS hardware. Codex is disabled pending approved commercial authentication.
+
+Start with the numbered Windows or macOS guide at https://leveric-workbench.vercel.app/tools/video-to-variations. It includes prerequisite installation, cloning https://github.com/franciscortez/leveric-video-connector into your home Leveric folder, building and pairing. No access to this private repository is required.
 
 Install Node 24, pnpm 10, FFmpeg (including ffprobe), Python and Claude Code 2.1.310 or later. Sign in with `claude auth login` using your subscription, and remove API/provider overrides from the connector environment. Create a Python environment and cache the speech model once:
 
@@ -89,7 +91,7 @@ python3 -m venv "$HOME/.video-tools/venv"
 "$HOME/.video-tools/venv/bin/python" -c "from faster_whisper import WhisperModel; WhisperModel('small', device='cpu', compute_type='int8')"
 ```
 
-From this repository checkout:
+From the public connector checkout (or this developer checkout):
 
 ```sh
 pnpm install
@@ -102,4 +104,4 @@ Keep the terminal and computer running. In the hosted video editor, choose **Con
 
 The connector binds only to `127.0.0.1:43127`. Set `VIDEO_CONNECTOR_PORT` explicitly if occupied, and enter the same port in the page. Projects persist under `~/LevericWorkbench/video`; `VIDEO_WORKSPACE` can override it. `VIDEO_PYTHON`, `VIDEO_FFMPEG_BIN` and `VIDEO_FFPROBE_BIN` support custom installations. Only one connector may own a workspace. Do not expose it through a tunnel or bind it to a public interface.
 
-Rollout is off by default: set `NEXT_PUBLIC_VIDEO_CONNECTOR_ENABLED=1` **at Vercel build time** to show pairing. The production origin is allowed by default; local development or a fixed preview origin must be listed exactly in local `VIDEO_CONNECTOR_ORIGINS` (comma-separated, no wildcards). Never copy Claude credentials into Vercel or the browser. This branch has not been deployed; macOS and a real deployed preview need acceptance before enabling production.
+Rollout is off by default: set `NEXT_PUBLIC_VIDEO_CONNECTOR_ENABLED=1` **at Vercel build time** to show pairing. The production origin is allowed by default; local development or a fixed preview origin must be listed exactly in local `VIDEO_CONNECTOR_ORIGINS` (comma-separated, no wildcards). Never copy Claude credentials into Vercel or the browser. Production now has this flag enabled and the OS guide deployed. macOS and a completely fresh Windows installation remain unverified.

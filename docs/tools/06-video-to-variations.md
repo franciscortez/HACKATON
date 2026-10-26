@@ -1,6 +1,6 @@
 # Tool 06: Source video to variations
 
-Status: LIVE locally; hosted connector preview implemented behind a disabled rollout flag. Design: [`superpowers/specs/2026-10-26-video-to-variations-design.md`](../superpowers/specs/2026-10-26-video-to-variations-design.md). Plan: [`superpowers/plans/2026-10-26-video-to-variations.md`](../superpowers/plans/2026-10-26-video-to-variations.md).
+Status: LIVE locally and through the production hosted connector. Windows verified; macOS setup provided but execution unverified. Design: [`superpowers/specs/2026-10-26-video-to-variations-design.md`](../superpowers/specs/2026-10-26-video-to-variations-design.md). Plan: [`superpowers/plans/2026-10-26-video-to-variations.md`](../superpowers/plans/2026-10-26-video-to-variations.md).
 
 A video editor in the Workbench. It opens straight into the editor. Import one or more videos, edit them by hand on a timeline or by asking Claude, and export a vertical or horizontal MP4.
 
@@ -44,4 +44,8 @@ Your own images or text layers beyond titles and captions, keyframes, transition
 
 ## Hosted connector preview
 
-See [approved design](../superpowers/specs/2026-10-26-hosted-video-connector-design.md) and [implementation plan](../superpowers/plans/2026-10-26-hosted-video-connector.md). The hosted page first shows pairing when the rollout flag is enabled. Manual editing remains available without Claude authentication; import/export require their local dependencies. Claude uses native subscription sign-in; Codex remains unavailable. Windows browser acceptance is recorded in the handoff; macOS and deployed-preview acceptance remain rollout gates.
+See [approved design](../superpowers/specs/2026-10-26-hosted-video-connector-design.md) and [implementation plan](../superpowers/plans/2026-10-26-hosted-video-connector.md). The hosted page first shows pairing when the rollout flag is enabled. Manual editing remains available without Claude authentication; import/export require their local dependencies. Claude uses native subscription sign-in; Codex remains unavailable. Windows browser acceptance is recorded in the handoff; production Windows acceptance is complete; macOS execution and fresh-machine installation remain unverified.
+
+## Public onboarding
+
+Approved: provide Windows and macOS setup tabs directly in the hosted pairing screen, with commands to install prerequisites, clone a public connector-only repository under the user home directory, build, start and paste the pairing code. Keep Workbench private. Missing dependencies must identify the affected capabilities. Production pairing is enabled as part of this release; macOS hardware is not labelled verified without execution evidence. Plan: ../superpowers/plans/2026-10-26-public-connector-setup.md.

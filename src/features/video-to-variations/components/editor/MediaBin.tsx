@@ -19,6 +19,7 @@ export function MediaBin({
   media,
   queue,
   disabled,
+  importDisabled = false,
   thumb,
   onImport,
   onAdd,
@@ -26,6 +27,7 @@ export function MediaBin({
   media: Media[];
   queue: ImportItem[];
   disabled: boolean;
+  importDisabled?: boolean;
   thumb: (mediaId: string, file: string) => string;
   onImport: (files: File[]) => void;
   onAdd: (mediaId: string) => void;
@@ -39,6 +41,7 @@ export function MediaBin({
         <input
           ref={input}
           type="file"
+          disabled={disabled || importDisabled}
           multiple
           accept="video/*,.mov,.mp4,.m4v,.webm,.mkv"
           className="sr-only"
@@ -49,7 +52,7 @@ export function MediaBin({
             if (files.length) onImport(files);
           }}
         />
-        <button type="button" disabled={disabled} onClick={() => input.current?.click()} className="label bg-ink px-2.5 py-1 text-[10px] text-white hover:bg-blue disabled:cursor-not-allowed disabled:bg-ink-soft/50">
+        <button type="button" disabled={disabled || importDisabled} onClick={() => input.current?.click()} className="label bg-ink px-2.5 py-1 text-[10px] text-white hover:bg-blue disabled:cursor-not-allowed disabled:bg-ink-soft/50">
           + Import
         </button>
       </div>

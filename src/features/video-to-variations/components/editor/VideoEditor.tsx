@@ -10,7 +10,7 @@ import { PreviewPlayer } from "@/features/video-to-variations/components/editor/
 import { TimelineView, type Selection } from "@/features/video-to-variations/components/editor/TimelineView";
 import { LocalOnlyNotice } from "@/features/video-to-variations/components/LocalOnlyNotice";
 import { ConnectComputer } from "@/features/video-to-variations/components/ConnectComputer";
-import { computerStatus, connectorSession, disconnectComputer, lastProjectKey, refreshAssets, type ConnectorStatus } from "@/features/video-to-variations/components/connector-client";
+import { mediaReadiness, computerStatus, connectorSession, disconnectComputer, lastProjectKey, refreshAssets, type ConnectorStatus } from "@/features/video-to-variations/components/connector-client";
 import { duration, editCaption, insertClip, remove, setCaptions, setFormat, split } from "@/features/video-to-variations/services/timeline-ops";
 import type { ClaudeModel, Project, TimeRange, Timeline } from "@/features/video-to-variations/types";
 import type { RunProgress } from "@/types/tool";
@@ -163,9 +163,12 @@ export function VideoEditor() {
     [project, timeline, flush],
   );
 
+  const readiness = mediaReadiness(computer);
+
   /** Imports files one after another; each lands at the end of the timeline as its own version. */
   async function importFiles(files: File[]) {
     if (!project || files.length === 0) return;
+    if (!readiness.importReady) { setError(readiness.messages.join(" ")); return; }
     await flush();
     setPlaying(false);
     setError(null);
@@ -231,6 +234,7 @@ export function VideoEditor() {
 
   async function exportVideo() {
     if (!project) return;
+    if (!readiness.exportReady) { setError(readiness.messages.join(" ")); return; }
     await flush();
     setPlaying(false);
     setError(null);
@@ -308,7 +312,7 @@ export function VideoEditor() {
 
   if (gate === "checking") return <p className="label mt-6 text-ink-soft">Checking this computer…</p>;
   if (gate !== "ok") return process.env.NEXT_PUBLIC_VIDEO_CONNECTOR_ENABLED === "1" || connectorSession()
-    ? <><ConnectComputer onConnected={() => { setGate("checking"); setConnectionAttempt((n) => n + 1); }} />{gate.message && <p role="alert" className="mt-3 text-sm text-danger">{gate.message}</p>}</>
+    ? <><ConnectComputer onConnected={() => { setGate("checking"); setConnectionAttempt((n) => n + 1); }} />{gate.code !== "local_only" && gate.message && <p role="alert" className="mt-3 text-sm text-danger">{gate.message}</p>}</>
     : <LocalOnlyNotice code={gate.code} />;
   if (!project || !timeline) {
     return error ? (
@@ -394,7 +398,7 @@ export function VideoEditor() {
           Redo ↷
         </button>
         <StatusChip value={project.status} />
-        <button type="button" disabled={locked || empty} onClick={exportVideo} className="arrow-link bg-ink px-4 py-1.5 text-sm font-medium text-white transition-colors duration-300 hover:bg-blue disabled:cursor-not-allowed disabled:bg-ink-soft/50">
+        <button type="button" disabled={locked || empty || !readiness.exportReady} onClick={exportVideo} className="arrow-link bg-ink px-4 py-1.5 text-sm font-medium text-white transition-colors duration-300 hover:bg-blue disabled:cursor-not-allowed disabled:bg-ink-soft/50">
           Export {shown.format} <span className="arrow">→</span>
         </button>
         <button type="button" disabled={locked} onClick={startNew} className="label arrow-link text-ink hover:text-blue disabled:opacity-40">
@@ -402,6 +406,8 @@ export function VideoEditor() {
         </button>
       </div>
 
+      {computer && <details className="border-t border-rule-l py-2"><summary className="cursor-pointer py-2 text-sm font-medium text-blue">Setup instructions for this computer</summary><ConnectComputer instructionsOnly onConnected={() => {}} /></details>}
+      {readiness.messages.length > 0 && <div role="status" className="border border-warn bg-white p-3 text-sm"><p className="font-semibold">Finish setting up this computer</p>{readiness.messages.map((text) => <p key={text}>{text}</p>)}<p>Use the setup instructions, then select Check connection.</p></div>}
       {error && (
         <p role="alert" className="border border-danger bg-white px-3 py-2 text-sm font-medium text-danger">
           {error}
@@ -423,6 +429,7 @@ export function VideoEditor() {
             media={project.media}
             queue={queue}
             disabled={locked}
+            importDisabled={!readiness.importReady}
             thumb={(mediaId, file) => videoApi.mediaFile(project.id, mediaId, file)}
             onImport={importFiles}
             onAdd={(mediaId) => {

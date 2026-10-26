@@ -30,8 +30,20 @@ function doctor() {
   for (const [label, binary, args] of checks) {
     const script = /\.m?js$/.test(binary);
     const result = spawnSync(script ? process.execPath : binary, script ? [binary, ...args] : args, { env, windowsHide: true, timeout: 20000, stdio: "pipe" });
-    process.stdout.write(`${label}: ${result.status === 0 ? "ready" : "missing or unavailable"}\n`);
+    process.stdout.write(`${label}: ${result.status === 0 ? "ready" : "missing or unavailable ? see the website setup instructions"}\n`);
   }
+  const ff = spawnSync(env.VIDEO_FFMPEG_BIN || "ffmpeg", ["-hide_banner", "-filters"], { env, windowsHide: true, timeout: 15000, encoding: "utf8" });
+  process.stdout.write(`FFmpeg subtitles: ${ff.status === 0 && /\bsubtitles\b/.test(ff.stdout || "") ? "ready" : "missing ? install a full FFmpeg build"}\n`);
+  const bin = env.VIDEO_CLAUDE_BIN || "claude";
+  const script = /\.m?js$/.test(bin);
+  const version = spawnSync(script ? process.execPath : bin, script ? [bin, "--version"] : ["--version"], { env, windowsHide: true, timeout: 15000, encoding: "utf8" });
+  const parts = (version.stdout || "").match(/(\d+)\.(\d+)\.(\d+)/)?.slice(1).map(Number);
+  const supported = parts && (parts[0] > 2 || (parts[0] === 2 && (parts[1] > 1 || (parts[1] === 1 && parts[2] >= 310))));
+  process.stdout.write(`Claude minimum version: ${supported ? "ready" : "update Claude Code to 2.1.310 or later"}\n`);
+  const auth = spawnSync(script ? process.execPath : bin, script ? [bin, "auth", "status"] : ["auth", "status"], { env, windowsHide: true, timeout: 15000, encoding: "utf8" });
+  let ready = false;
+  try { const parsed = JSON.parse(auth.stdout); ready = auth.status === 0 && parsed.loggedIn && parsed.authMethod === "claude.ai"; } catch {}
+  process.stdout.write(`Claude subscription: ${ready ? "signed in" : "run claude auth login and choose your subscription"}\n`);
 }
 async function start() {
   if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error("Choose a VIDEO_CONNECTOR_PORT between 1024 and 65535.");

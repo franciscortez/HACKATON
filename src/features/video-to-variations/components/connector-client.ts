@@ -3,7 +3,17 @@ import type { Project } from "@/features/video-to-variations/types";
 const key = "vtv:connector";
 const sessionSchema = z.object({ endpoint: z.string().regex(/^http:\/\/127\.0\.0\.1:\d+$/), token: z.string().regex(/^[\w-]{43}$/), expiresAt: z.number(), connectorId: z.string(), protocol: z.literal(1) });
 export type ConnectorSession = z.infer<typeof sessionSchema>;
-export type ConnectorStatus = { protocol: number; connectorId: string; manualEditing: boolean; dependencies: Record<"ffmpeg" | "ffprobe" | "python" | "transcriptionModel" | "storage", boolean>; providers: Record<"claude" | "codex", { ready: boolean; message: string }> };
+export type ConnectorStatus = { protocol: number; connectorId: string; manualEditing: boolean; dependencies: Record<"ffmpeg" | "ffprobe" | "python" | "transcriptionModel" | "storage", boolean> & { subtitles?: boolean }; providers: Record<"claude" | "codex", { ready: boolean; message: string }> };
+export function mediaReadiness(computer: ConnectorStatus | null) {
+  if (!computer) return { importReady: true, exportReady: true, messages: [] as string[] };
+  const d = computer.dependencies;
+  const messages: string[] = [];
+  if (!d.ffmpeg || !d.ffprobe) messages.push("Install FFmpeg and ffprobe to import and export videos.");
+  if (d.subtitles !== true) messages.push("Install FFmpeg with subtitle support, or update an older connector, to export videos.");
+  if (!d.python || !d.transcriptionModel) messages.push("Complete the Python and speech model setup to import videos.");
+  if (!d.storage) messages.push("The connector cannot write to its project folder. Check folder permissions.");
+  return { importReady: d.ffmpeg && d.ffprobe && d.python && d.transcriptionModel && d.storage, exportReady: d.ffmpeg && d.ffprobe && d.subtitles === true && d.storage, messages };
+}
 const urls = new Map<string, string>();
 let assetSet = "";
 let refreshed = 0;
