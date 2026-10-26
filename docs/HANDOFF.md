@@ -1,6 +1,6 @@
 # Handoff
 
-Last updated: 26 October 2026, Codex, branch `feat/hosted-video-connector`. User authorised commit, push and PR publication. Production rollout remains disabled.
+Last updated: 26 October 2026, Codex, branch `feat/hosted-video-connector`. Implementation committed as `25f07bc` and pushed. PR [#8](https://github.com/franciscortez/HACKATON/pull/8) is open against main. Production rollout remains disabled.
 
 ## Current work: hosted video connector
 
