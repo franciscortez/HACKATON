@@ -2,7 +2,7 @@
 
 Read this first, then [`AGENTS.md`](../AGENTS.md) section 3 for which docs to load. Update this file at the end of every session (rules in `AGENTS.md` section 5).
 
-**Last updated:** 26 Oct 2026, Claude Code, branch `feat/workbench-phase-1-2` (committed locally, not pushed)
+**Last updated:** 26 Oct 2026, Claude Code, branch `feat/meeting-ui-generalise` (committed locally, not pushed; phases 1-2 merged as PR #4)
 
 ## Current status
 - Phases 1 and 2 are built: the workbench shell and tool **01 Meeting to action** work end to end (`docs/superpowers/plans/2026-10-26-phase-1-2-meeting-to-action.md`).
@@ -13,7 +13,7 @@ Read this first, then [`AGENTS.md`](../AGENTS.md) section 3 for which docs to lo
 | What | Where |
 |---|---|
 | Docs: PRD, design, stack, architecture, testing, phases, tool specs, AGENTS.md | PRs #1-#3 |
-| Next.js 16.4 app (pnpm, `src/`, `@/*`), brand tokens, app shell (wordmark only), tools index | Branch `feat/workbench-phase-1-2` |
+| Next.js 16.4 app (pnpm, `src/`, `@/*`), brand tokens, app shell, tools index, meeting-to-action | PR #4 |
 | REST API: `GET /api/tools`, `GET /api/tools/{slug}`, `POST /api/tools/{slug}/runs` (streams NDJSON progress, then result or a plain error) | `src/app/api/` |
 | AI provider chain Groq → Gemini → Ollama: per-provider output caps, waits once on a short 429, falls back on 429/5xx/timeout/invalid output | `src/lib/ai/` |
 | Meeting to action: parser (Fathom markdown and plain-text export, VTT, SRT, plain), chunked extraction, checks (owners from people in the meeting, stated dates only, quote verification), email draft rebuilt after edits, Markdown/CSV/Slack/email export | `src/features/meeting-to-action/` |
