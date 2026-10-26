@@ -95,3 +95,19 @@ Each feature's `index.ts` exports one object that matches the shared contract in
 - No server-side history; run cap enforced in the browser.
 - Ollama works only when the app runs on a machine with Ollama, not on Vercel.
 - Free-tier limits can change without notice.
+
+## 10. Research to call brief
+
+The shared research layer owns URL validation, bounded Apify lifecycle, rendered HTML extraction, visual observations and signed preview retrieval. Tool 03 owns its versioned schemas, Leveric capability catalogue, composition, evidence checks, review and exports. No feature cross-imports.
+
+`POST /api/tools/{slug}/runs` accepts the existing envelope. Tool 03 requires only companyUrl; legacy contact/objective values are optional context. New results have schemaVersion 2, dossier, brand, callSheet, callSheetStale and editedSections, plus compatible source/brief fields. Legacy browser records use the original renderer; malformed v2 records cannot silently fall back to v1.
+
+`GET /api/research/preview?token=...` verifies a seven-day HMAC reference to an Actor key-value store and a fixed preview key. It fetches only the Apify API, limits image bytes to 3 MB and checks JPEG type/signature. Raw HTML and image binaries are not stored in browser history. History includes optional run cost; older entries may lack it.
+
+Each browser run permits at most six pages, concurrency one, no retries, a 120-second Actor timeout and a four-minute overall deadline. Apify maxTotalChargeUsd does not enforce limits on pay-per-usage Actors; settings.maxRunUsd is retained for compatibility but represents the US$0.10 target for this mode. ResearchUsage.budgetPolicy distinguishes target from older allocations. Known charges, including partial work, remain visible; ambiguous starts are never automatically retried.
+
+Browser scripts are fixed application code. Pre-navigation hooks block private/reserved DNS destinations, unsafe URL schemes, credentials, nonstandard ports, non-read request methods and WebSockets. Chromium bypasses service workers during collection. Public CDNs may load CSS/images/fonts. No prospect scripts or HTML are executed inside the app; visual observations are data, not trusted markup. App credentials are never placed in browser page context.
+
+Source extracts are checked against captured text. Synthesis and suggested opportunities remain labelled interpretations; hypotheses must cite an observed extract and a documented capability. Dossier edits invalidate the call sheet; rebuilding explicitly replaces prior call-sheet edits. Approval gates exports, and long print content is blocked rather than truncated.
+
+Local-only clients skip Apify and DNS entirely, using pasted material with Ollama. Monthly counters and history are browser-local; no authentication or durable server database was added. Deployments require a hosting plan supporting the 300-second route duration. Developer MCP remains separate from the application.

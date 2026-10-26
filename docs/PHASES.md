@@ -2,6 +2,8 @@
 
 Rule from the deck: finish one usable tool before starting the next (slides 2, 17). Each phase ends with a working demo, a cost note and updated docs. A later phase never starts while the earlier one fails its exit criteria.
 
+User-selected order on 26 October 2026: merge Tool 01 first (PR #4), then build Tool 03 in a separate worktree before Tool 08. Tool 01's documented L10 owner-accuracy limitation was retained for human review. Tool 03 is now built and verified locally; deployment and its own PR remain separate actions. The later ordering table below records the original proposal.
+
 ## Phase 0: Docs (this phase)
 - Output: `PRD.md`, `DESIGN.md`, `TECH-STACK.md`, `ARCHITECTURE.md`, `PHASES.md`, `tools/01`-`tools/10`.
 - Exit: docs reviewed by the user; open questions listed; implementation plan for phases 1-2 written.

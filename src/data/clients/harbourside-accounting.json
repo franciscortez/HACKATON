@@ -16,5 +16,6 @@
   ],
   "rules": ["Never promise ATO outcomes to clients."],
   "usage": { "runsPerMonth": 20 },
-  "dataPolicy": "cloud-ok"
+  "dataPolicy": "cloud-ok",
+  "tools": { "research-to-call-brief": { "enabled": true, "maxRunUsd": 0.1, "runsPerMonth": 20 } }
 }

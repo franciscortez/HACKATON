@@ -16,5 +16,6 @@
   ],
   "rules": ["Only list work the team agreed to do; skip personal chat."],
   "usage": { "runsPerMonth": 50 },
-  "dataPolicy": "cloud-ok"
+  "dataPolicy": "cloud-ok",
+  "tools": { "research-to-call-brief": { "enabled": true, "maxRunUsd": 0.1, "runsPerMonth": 20 } }
 }

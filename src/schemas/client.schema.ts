@@ -19,6 +19,11 @@ export const clientSchema = z.object({
   rules: z.array(z.string()).default([]),
   usage: z.object({ runsPerMonth: z.number().int().positive() }),
   dataPolicy: z.enum(["cloud-ok", "local-only"]),
+  tools: z.object({
+    "research-to-call-brief": z.object({
+      enabled: z.boolean(), maxRunUsd: z.number().positive().max(0.1), runsPerMonth: z.number().int().positive().max(20),
+    }).optional(),
+  }).optional(),
 });
 
 export type TeamMember = z.infer<typeof teamMemberSchema>;

@@ -3,11 +3,13 @@ import { notFound } from "next/navigation";
 import { Suspense, type ComponentType } from "react";
 import { StatusChip } from "@/components/workflow/StatusChip";
 import { MeetingWorkbench } from "@/features/meeting-to-action";
+import { ResearchWorkbench } from "@/features/research-to-call-brief";
 import { getTool, listTools } from "@/features/registry";
 
 /** Workbench UI per runnable tool. Planned tools show their summary only. */
 const workbenches: Record<string, ComponentType> = {
   "meeting-to-action": MeetingWorkbench,
+  "research-to-call-brief": ResearchWorkbench,
 };
 
 /** Every tool page is known at build time, so all of them prerender. */
@@ -41,7 +43,7 @@ async function Tool({ params }: Pick<PageProps<"/tools/[slug]">, "params">) {
           <p className="label text-ink-soft">{tool.index} · Tool</p>
           <h1
             className="mt-2 font-semibold uppercase leading-[0.9] tracking-[var(--tracking-display)]"
-            style={{ fontSize: "clamp(36px, 6vw, 96px)" }}
+            style={{ fontSize: slug === "research-to-call-brief" ? "clamp(24px, 3vw, 32px)" : "clamp(36px, 6vw, 96px)" }}
           >
             {tool.name}
           </h1>

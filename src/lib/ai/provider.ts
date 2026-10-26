@@ -71,6 +71,7 @@ export function availableProviders(policy: ClientConfig["dataPolicy"], env: Env 
 }
 
 interface StructuredArgs<T> {
+  signal?: AbortSignal;
   schema: ZodType<T>;
   system: string;
   prompt: string;
@@ -100,7 +101,7 @@ export async function generateStructured<T>(args: StructuredArgs<T>): Promise<{ 
           maxOutputTokens: provider.maxOutputTokens,
           providerOptions: provider.providerOptions,
           maxRetries: 0,
-          abortSignal: AbortSignal.timeout(provider.timeoutMs),
+          abortSignal: args.signal ? AbortSignal.any([args.signal, AbortSignal.timeout(provider.timeoutMs)]) : AbortSignal.timeout(provider.timeoutMs),
         });
         const usage = result.totalUsage ?? result.usage;
         return {

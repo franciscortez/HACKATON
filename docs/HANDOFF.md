@@ -1,65 +1,39 @@
 # Handoff
 
-Read this first, then [`AGENTS.md`](../AGENTS.md) section 3 for which docs to load. Update this file at the end of every session (rules in `AGENTS.md` section 5).
+Read this first, then AGENTS.md for task-specific documentation.
 
-**Last updated:** 26 Oct 2026, Claude Code, branch `feat/workbench-phase-1-2` (committed locally, not pushed)
+**Last updated:** 26 October 2026, Codex, branch `feat/research-to-call-brief`.
 
 ## Current status
-- Phases 1 and 2 are built: the workbench shell and tool **01 Meeting to action** work end to end (`docs/superpowers/plans/2026-10-26-phase-1-2-meeting-to-action.md`).
-- Tool 01 status is `LIVE`. Tools 02-10 are `PLANNED` (spec only).
-- Hackathon submission cutoff: **7 pm AEDT, 26 Oct 2026**.
+- Tool 01 merged in PR #4, commit `47148b595eba0ae4dc78f1eed0c4ddb726635d16`. Preserve unrelated changes in the original `E:/Code/HACKATON` checkout.
+- Tool 03 URL dossier implementation is complete locally in `C:/Users/franc/.codex/worktrees/9ea3/HACKATON`. All Tool 03 work remains uncommitted; no push, PR or deployment requested.
+- Preview: http://localhost:3103/tools/research-to-call-brief. Run `pnpm dev --port 3103` from this worktree if stopped.
 
 ## Done
-| What | Where |
-|---|---|
-| Docs: PRD, design, stack, architecture, testing, phases, tool specs, AGENTS.md | PRs #1-#3 |
-| Next.js 16.4 app (pnpm, `src/`, `@/*`), brand tokens, app shell, tools index | Branch `feat/workbench-phase-1-2` |
-| REST API: `GET /api/tools`, `/api/tools/{slug}`, `/api/clients`, `/api/clients/{id}`, `POST /api/tools/{slug}/runs` | `src/app/api/` |
-| AI provider chain Groq → Gemini → Ollama with per-provider output caps, fallback on 429/5xx/timeout/invalid output | `src/lib/ai/` |
-| Meeting to action: parser (Fathom, VTT, SRT, plain), chunked extraction, checks (roster owners, stated dates only, quote verification), email draft, Markdown/CSV/Slack/email export, review UI with approval | `src/features/meeting-to-action/` |
-| Two clients (Leveric real, Harbourside synthetic) | `src/data/clients/` |
-| Tests: 96 unit + API (Vitest), 4 e2e (Playwright, desktop + mobile), playwright-cli browser checks; final review fixes (dedup, email rebuild, timestamped lines, CSV formula guard, feature imports) | `tests/` |
+- URL-only research using bounded Apify rendered HTML extraction: six same-site pages, text, colours, font families, logo candidate, imagery, actions and homepage screenshot.
+- Evidence-backed business dossier, labelled synthesis and Leveric opportunity hypotheses, desktop evidence rail, mobile disclosures, explicit edits and call-sheet rebuild, approval-gated Markdown and A4 PDF.
+- Legacy saved reports, client isolation, cancellation, pasted-text recovery and local-only model path retained. Cleared edited facts remain readable after reload.
+- Fresh independent review completed. Fixed redirect bypass using Chromium Fetch interception on every hop; preserved complete rebuilt talking points instead of silently cutting edited hypotheses. Real Chromium regression observed two private redirect requests before the fix and zero after it.
+- Apify developer MCP remains installed at `C:/Users/franc/.codex/mcp/apify`; the app uses REST. Keys stay in ignored env files.
+- Current spec and plan: `docs/superpowers/specs/2026-10-26-url-dossier-design.md` and `docs/superpowers/plans/2026-10-26-url-dossier.md`.
 
-## Verified results (26 Oct 2026)
-- `pnpm test` 96 passed, 2 skipped (fixture recorders); `pnpm test:e2e` 4 passed; `pnpm build`, `tsc`, `eslint` clean.
-- Live Harbourside run via the API: Groq, 5.3 s, $0.00 (about $0.0012 at paid rates), correct owners and dates.
-- Live L10 (45 min, 46k characters): Groq about 20 s when its per-minute limit is fresh; otherwise Gemini answers, which takes longer. Local Ollama alone took about 144 s.
-- Browser: upload, run, edit (EDITED), approve (APPROVED), CSV download, re-edit (EDITED); no-speakers banner; forced 502 and 429 messages; 375 px with no horizontal scroll.
+## Verified
+- Final automated suite: 153 unit/API tests passed, 2 recorder tests skipped; 43 browser tests passed across desktop/mobile/tablet, 1 duplicate network-boundary test skipped. Lint, TypeScript and production build passed. Browser command: `$env:PLAYWRIGHT_BASE_URL='http://localhost:3103'; pnpm test:e2e`.
+- playwright-cli verified both clients, editing, stale/rebuild/approval, print invocation, failure/pasted recovery and reduced motion. Desktop/tablet/mobile screenshots reviewed; no horizontal overflow. Only browser error was the deliberately injected 502. A4 fixture PDFs contain one page.
+- Final live URL-only success after all fixes: HTTP 201 in 13 seconds; company name Leveric, one page, four services and three proposed opportunities; US$0.000470 Apify usage. Rendered homepage preview and the updated redirect guard worked in Apify. Earlier retries hit free quotas before Groq recovered enough tokens; Gemini quota exhausted and Ollama unavailable. No paid AI used. Six bounded upgrade smoke/diagnostic runs totalled US$0.003195, separate from the earlier v1 work.
+- Secret scan: 182 tracked/untracked non-ignored files, zero configured API key matches. Diff whitespace check passed.
+- Browser artifacts, visual critique and execution ledger remain ignored under `tests/artifacts/` and `.superpowers/`.
 
-## Known limits
-- **L10 owner accuracy:** Fathom puts `ACTION ITEM` lines inside whichever speaker's turn is current, so models sometimes pick the wrong owner (for example "Fix preview branch DB" given to Francis instead of Yohan). The reviewer fixes owners in the Review step. The spec target (5 of 6 golden owners) is not met on L10; Harbourside owners are correct.
-- Groq's free tier has a small per-minute token limit: back-to-back long meetings fall back to Gemini.
-- Run cap and history live in browser storage (a user can clear them).
-- Audio upload is not built (phase 2b).
-- Not deployed to Vercel yet.
+## Decisions and limits
+- US$0.10 is an approved target, not a guaranteed charge cap for pay-per-usage browser runs. Six pages/concurrency one/no retries/120-second Actor/four-minute total request bound resource use. Browser monthly counts remain advisory.
+- Source extracts are website claims, not independent fact checks; synthesis and opportunities require human review. No external competitor/contact searches in the URL dossier. Preview links expire after seven days or earlier storage expiry.
+- Request-stage DNS/redirect/subresource checks do not independently prove Apify proxy connection-level DNS rebinding protection. No authentication, durable quota, database or deployment in this scope.
+- Existing brand micro-labels retained. Company-name output limited to 80 characters; unusually long legal names may need a trading name. Long call sheets require editing before PDF; content is preserved.
+- Deferred minor: dossier Markdown omits city/industry as separate metadata fields, although report and source text retain them.
+- Tool 01's L10 owner-accuracy gap remains accepted for human review; audio deferred. Hosting must support the 300-second route duration.
 
-## Next step
-1. Push the branch, open a PR and merge (when the user asks).
-2. Deploy to Vercel with `GROQ_API_KEY` and `GOOGLE_GENERATIVE_AI_API_KEY` set as environment variables.
-3. Record the demo (script in `docs/tools/01-meeting-to-action.md` §9).
-
-## Decisions made (with the user)
-| Decision | Detail |
-|---|---|
-| Stack | Next.js 16.4 (App Router, TypeScript, `src/`, `@/*`), Tailwind v4, Zod 4, AI SDK 7, pnpm |
-| AI | Groq `openai/gpt-oss-120b` → Gemini `gemini-2.5-flash` → Ollama `qwen2.5:7b-instruct` |
-| Storage | No database: client configs in `src/data/clients/*.json`, runs in browser storage |
-| Structure | `src/features/<feature-name>/`; global `components/`, `lib/`, `services/`, `types/`, `schemas/` |
-| API | REST route handlers in `src/app/api/` only |
-| Tests | Root `tests/`; Vitest, Playwright, playwright-cli |
-| Hosting | Judges use the Vercel URL; the demo video is recorded locally |
-| Data | The real L10 transcript may be committed, deployed and sent to cloud models |
-| Tool 01 scope | Transcript only for the hackathon; audio upload is phase 2b |
-
-## Open questions
-- For Josh: maximum demo length; dark logo files.
-- Claude Code reads `CLAUDE.md`, not `AGENTS.md`. Ask the user whether to add a one-line `CLAUDE.md` containing `@AGENTS.md`.
-- Time saved per meeting (15-25 min) is an estimate, not yet validated.
-
-## Environment notes
-- Windows 11, AMD RX 6650 XT (8 GB, no CUDA). Microsoft Edge only (no Chrome): use `playwright-cli open --browser=msedge`.
-- Ollama 0.40.11 at `http://127.0.0.1:11434`, GPU through Vulkan. User env: `OLLAMA_CONTEXT_LENGTH=16384`. Flash attention and q8 KV cache were turned off again: they did not speed up long prompts.
-- Long prompts are slow locally (10.8k tokens took 194 s to read; 1k tokens reads at about 306 tokens/s). That is why transcripts are split into chunks of about 10,000 characters.
-- Do not restart Ollama during `ollama pull`: it leaves empty `-partial-N` files and later pulls fail with `Error: EOF`. Fix: delete that model's `~/.ollama/models/blobs/sha256-<digest>-partial*` files and pull again.
-- `.env` holds the Groq and Gemini keys (git-ignored). Load it in a shell with `set -a && . ./.env && set +a` before recording fixtures: `RECORD=1 pnpm vitest run tests/unit/meeting-to-action/record-fixtures.test.ts`.
-- Video toolchain (FFmpeg, faster-whisper, HyperFrames) is installed globally; see the `video-editing` skill. Needed for tools 06 and 10.
+## Uncommitted work and next step
+- Changes span Tool 03 feature/services/routes/tests/fixtures, shared AI/client/run integration and product/setup/design/architecture/spec/plan docs. Original checkout untouched.
+- User reported a new Leveric run failing with HTTP 502 after 9.7 seconds and about US$0.0005 Apify usage. The generic brief_failed handler discards the underlying cause; free-model quota exhaustion is suspected from prior diagnostics, not confirmed for this request.
+- Local verification: Ollama is now running at 127.0.0.1:11434 with qwen2.5:7b-instruct loaded on GPU (4,096-token runtime context). A manual run of the real dossier pipeline with 5,454 characters of saved Leveric source text and local-only providers returned HTTP 200 from Ollama and completed in 50 seconds at US$0. It produced a useful synthesis but no verified company name, services or opportunities after evidence validation; local connectivity works, output quality is not yet sufficient. The smoke harness blocked all non-local fetches; no scrape or cloud AI was used. Result: ignored .superpowers/sdd/2026-10-26-url-dossier/ollama-local-result.json.
+- Next action: inspect local raw output against evidence validation and improve local extraction quality; also preserve safe provider failure categories and collected research for retries.

@@ -18,6 +18,7 @@ export interface RunContext {
   now: Date;
   /** AI providers in fallback order, already filtered by the client's data policy. */
   providers: ProviderEntry[];
+  signal?: AbortSignal;
 }
 
 export interface RunResult<O> {
@@ -31,5 +32,6 @@ export interface ToolModule<I, O> {
   outputSchema: ZodType<O>;
   /** True when the raw input is over the tool's size limit (checked before validation, for a 413). */
   isTooLarge(input: unknown): boolean;
+  getRunLimit?(client: ClientConfig): number;
   run(input: I, ctx: RunContext): Promise<RunResult<O>>;
 }
