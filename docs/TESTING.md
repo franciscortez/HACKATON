@@ -17,9 +17,9 @@ tests/
 ## 2. Tools
 | Layer | Tool | Runs |
 |---|---|---|
-| Unit and API | Vitest | `npm test` |
-| End to end | Playwright | `npm run test:e2e` |
-| Browser checks by the agent | `playwright-cli` (the `/playwright-cli` skill) | Run against `npm run dev` or the Vercel preview URL (section 5) |
+| Unit and API | Vitest | `pnpm test` |
+| End to end | Playwright (Microsoft Edge channel; Chrome is not installed here) | `pnpm test:e2e` |
+| Browser checks by the agent | `playwright-cli` (the `/playwright-cli` skill) | Run against `pnpm dev` or the Vercel preview URL (section 5) |
 
 ## 3. What each layer covers
 | Layer | Covers |
@@ -36,7 +36,7 @@ tests/
 - No secrets in fixtures. Real client data only where the owner approved it.
 
 ## 5. Browser checks with playwright-cli
-Every feature is checked in a real browser with the `/playwright-cli` skill before it is called done. If the global command is missing, use `npx playwright cli` or install `@playwright/cli`.
+Every feature is checked in a real browser with the `/playwright-cli` skill before it is called done. If the global command is missing, use `npx playwright cli` or install `@playwright/cli`. On this machine open the browser with `playwright-cli open --browser=msedge`. Use exact labels (`getByLabel('Owner for task 1', { exact: true })`), because "task 1" also matches "task 10".
 
 ### When
 - After each UI task in a feature plan.
@@ -79,6 +79,6 @@ playwright-cli close
 - `playwright-cli video-start` / `video-stop` can record the demo flow for the Loom backup.
 
 ## 6. Done means
-- `npm test` and `npm run test:e2e` pass.
+- `pnpm test` and `pnpm test:e2e` pass.
 - The playwright-cli flow in section 5 passes for both clients and the failure case, on desktop and 375px, with no console errors.
 - Every acceptance criterion in the feature's tool spec maps to a test or a recorded browser check.

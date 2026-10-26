@@ -36,6 +36,7 @@ Leveric Workbench is one Next.js app that holds Leveric's client tools (meeting 
 - **Secrets.** Keys only in `.env.local` and Vercel env vars. Never in code, docs, fixtures or the handoff.
 - **Git.** Do not commit, push or open a PR unless the user asks in that message. Never work directly on `main`; branch first. No AI attribution in commits or PRs.
 - **Spelling.** AU/NZ English in UI copy ("organise", "enquiry").
+- **Tooling.** Use `pnpm` (`pnpm dev`, `pnpm test`, `pnpm test:e2e`, `pnpm build`). Source lives in `src/` with the `@/*` alias. Read the bundled docs before using an API: Next.js in `node_modules/next/dist/docs/`, AI SDK in `node_modules/ai/docs/`.
 
 ## 5. End every session here
 Before you stop, update [`docs/HANDOFF.md`](docs/HANDOFF.md):
@@ -47,3 +48,14 @@ Before you stop, update [`docs/HANDOFF.md`](docs/HANDOFF.md):
 6. Keep it short: replace old detail instead of appending a diary. History belongs in git.
 
 If a doc became wrong because of your work, fix the doc in the same change.
+
+## 6. Next.js version note
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
