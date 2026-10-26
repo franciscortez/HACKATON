@@ -40,11 +40,12 @@ export async function connectorStatus() {
     check(pythonBin(), ["-I", "-c", "import faster_whisper"]),
     check(pythonBin(), ["-I", "-c", "from faster_whisper import WhisperModel; WhisperModel('small', device='cpu', compute_type='int8', local_files_only=True)"]),
     mkdir(defaultWorkspaceRoot(), { recursive: true }).then(() => access(defaultWorkspaceRoot(), constants.W_OK)),
+    check(binaries.ffmpeg(), ["-hide_banner", "-filters"]).then((r) => { if (!/\bsubtitles\b/.test(r.stdout)) throw new Error("Subtitle filter unavailable"); }),
   ]);
-  const [ffmpeg, ffprobe, python, transcriptionModel, storage] = checks.map((r) => r.status === "fulfilled");
+  const [ffmpeg, ffprobe, python, transcriptionModel, storage, subtitles] = checks.map((r) => r.status === "fulfilled");
   return {
     protocol: CONNECTOR_PROTOCOL, connectorId: connectorId(), manualEditing: storage,
-    dependencies: { ffmpeg, ffprobe, python, transcriptionModel, storage },
+    dependencies: { ffmpeg, ffprobe, python, transcriptionModel, storage, subtitles },
     providers: {
       claude: await claudeReadiness(),
       codex: { ready: false, message: "Codex is not available yet. Approved commercial authentication is required." },

@@ -1,0 +1,14 @@
+.env*
+.git/**
+node_modules/**
+.next/**
+.next-video-connector/**
+.vercel/**
+.superpowers/**
+.playwright-cli/**
+tests/**
+test-results/**
+playwright-report/**
+slides/**
+docs/**
+*.tsbuildinfo

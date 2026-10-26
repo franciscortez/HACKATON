@@ -21,7 +21,7 @@ test.beforeAll(async () => {
   }
   let output = "";
   connector = spawn(process.execPath, ["src/features/video-to-variations/scripts/connector.mjs", "start"], {
-    cwd: process.cwd(), windowsHide: true, env: { ...process.env, VERCEL: "", VIDEO_CONNECTOR_PORT: String(port), VIDEO_WORKSPACE: join(dir, "workspace"), VIDEO_CLAUDE_BIN: join(process.cwd(), "tests/fixtures/video-to-variations/fake-claude.mjs") }, stdio: ["ignore", "pipe", "pipe"],
+    cwd: process.env.CONNECTOR_PUBLIC_ROOT || process.cwd(), windowsHide: true, env: { ...process.env, VERCEL: "", VIDEO_CONNECTOR_PORT: String(port), VIDEO_WORKSPACE: join(dir, "workspace"), VIDEO_CLAUDE_BIN: join(process.cwd(), "tests/fixtures/video-to-variations/fake-claude.mjs") }, stdio: ["ignore", "pipe", "pipe"],
   });
   connector.stdout!.on("data", (chunk) => { output += chunk.toString(); code = /expires in 10 minutes\):\s*([a-f0-9]{64})/.exec(output)?.[1] ?? ""; });
   connector.stderr!.on("data", () => {});
@@ -41,7 +41,7 @@ test("hosted-origin pairing, editing, seeking, export and revocation", async ({ 
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   // Serve this branch's built UI at the production origin without changing the deployed site.
-  await page.route(`${origin}/**`, async (route) => {
+  if (process.env.CONNECTOR_LIVE_UI !== "1") await page.route(`${origin}/**`, async (route) => {
     const path = new URL(route.request().url()).pathname;
     if (path.startsWith("/api/")) {
       await route.fulfill({ status: 503, json: { error: { code: "local_only", message: "Connect your computer to edit here." } } }); return;
@@ -52,6 +52,18 @@ test("hosted-origin pairing, editing, seeking, export and revocation", async ({ 
   });
   await page.goto(`${origin}/tools/video-to-variations`);
   await expect(page.getByRole("heading", { name: "Connect your computer" })).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Windows", exact: true })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByText("not on Vercel", { exact: false })).toHaveCount(0);
+  await page.getByRole("tab", { name: "macOS", exact: true }).click();
+  await expect(page.getByRole("tabpanel")).toContainText("brew install git node@24");
+  await page.getByRole("tab", { name: "macOS", exact: true }).press("ArrowLeft");
+  await expect(page.getByRole("tab", { name: "Windows", exact: true })).toBeFocused();
+  await expect(page.getByRole("tabpanel")).toContainText("winget install --id Gyan.FFmpeg");
+  await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async () => { throw new Error("denied"); } } }));
+  await page.getByRole("button", { name: "Copy Download connector", exact: true }).click();
+  await expect(page.getByText("Copy unavailable. Select the command text and copy it manually.")).toBeVisible();
+  await page.getByRole("button", { name: "Already set up? Connect below" }).click();
+  await expect(page.getByLabel("Pairing code")).toBeFocused();
   await page.setViewportSize({ width: 375, height: 812 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -96,6 +108,18 @@ test("hosted-origin pairing, editing, seeking, export and revocation", async ({ 
   await page.setViewportSize({ width: 375, height: 812 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: "tests/artifacts/connector-mobile.png", fullPage: true });
+  await page.route(`${endpoint}/api/video-connector/status`, async (route) => {
+    const response = await route.fetch();
+    const status = await response.json();
+    status.dependencies.ffmpeg = false;
+    await route.fulfill({ response, json: status });
+  });
+  await page.getByRole("button", { name: "Check connection", exact: true }).click();
+  await expect(page.getByText("Install FFmpeg and ffprobe to import and export videos.")).toBeVisible();
+  await expect(page.getByLabel("Import videos")).toBeDisabled();
+  await expect(page.getByRole("button", { name: /Export 9:16/ })).toBeDisabled();
+  await page.getByText("Setup instructions for this computer", { exact: true }).click();
+  await expect(page.getByRole("tab", { name: "macOS", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Disconnect", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Connect your computer" })).toBeVisible();
   expect(errors).toEqual([]);

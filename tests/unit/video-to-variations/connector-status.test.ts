@@ -20,4 +20,12 @@ describe("connector dependencies", () => {
     vi.stubEnv("VIDEO_PYTHON", join("custom", "python"));
     expect(pythonBin()).toBe(join("custom", "python"));
   });
+  it("reports unavailable video tools without blocking manual editing", async () => {
+    vi.stubEnv("VIDEO_FFMPEG_BIN", "not-a-real-ffmpeg");
+    vi.stubEnv("VIDEO_FFPROBE_BIN", "not-a-real-ffprobe");
+    vi.stubEnv("VIDEO_CLAUDE_BIN", "not-a-real-video-cli");
+    const status = await connectorStatus();
+    expect(status.dependencies).toMatchObject({ ffmpeg: false, ffprobe: false, subtitles: false });
+    expect(status.manualEditing).toBe(true);
+  });
 });
