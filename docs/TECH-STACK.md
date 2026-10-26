@@ -58,5 +58,19 @@ Free-tier model names change often. Keep them in one file (`lib/ai/models.ts`) a
 - No database, auth or payments. Add Supabase later if tools need shared history across users.
 - No automatic sending (email, Slack, Asana). Exports are copy or download only. Integrations come after approval flows are proven.
 
-## Versions
-Pin exact versions in `package.json` when the project is scaffolded. Use the current stable Next.js and Tailwind v4 at that time; record the versions here after scaffolding.
+## Versions (pinned 26 Oct 2026)
+| Package | Version |
+|---|---|
+| Node | 24.22 (pnpm 10.34) |
+| next | 16.4.3 |
+| react, react-dom | 19.3.0 |
+| tailwindcss | 4.3.3 |
+| typescript | 5.9.3 |
+| zod | 4.6.7 |
+| ai | 7.0.153 |
+| @ai-sdk/groq | 4.0.70 |
+| @ai-sdk/google | 4.0.105 |
+| @ai-sdk/openai-compatible | 3.0.78 (used for Ollama at `http://127.0.0.1:11434/v1`) |
+| vitest | 5.0.5 |
+| @playwright/test | 1.64.1 |
+| Local model | `qwen2.5:7b-instruct` in Ollama 0.40.11 (Vulkan, 16k context) |

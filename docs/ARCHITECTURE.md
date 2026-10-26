@@ -4,29 +4,30 @@ One Next.js app (App Router). Each tool is a **feature** that plugs into a share
 
 ## 1. Folder layout
 ```
-app/                       pages and API routes only; thin, no business logic
-  (pages)                  tools index, generic tool page /tools/[slug]
-  api/                     every REST endpoint (see section 2)
+src/
+  app/                     pages and API routes only; thin, no business logic
+    (pages)                tools index, generic tool page /tools/[slug]
+    api/                   every REST endpoint (see section 2)
+  components/              global UI: ui primitives, app shell, shared workflow parts
+  lib/                     global helpers: AI provider chain, model config, cost, utils
+  services/                global services: clients, runs, usage
+  types/                   global types: tool contract, run, cost
+  schemas/                 global Zod schemas: client config, run
+  data/clients/            client config JSON (one file per client)
+  features/
+    registry.ts            slug -> feature, name, status
+    <feature-name>/        one folder per tool, e.g. meeting-to-action
+      components/          UI only this tool uses
+      services/            logic only this tool uses
+      schemas/             Zod schemas for this tool's input and output
+      types/               types inferred from the schemas
+      prompts/             model prompts
+      index.ts             public API of the feature
 
-components/                global UI: ui primitives, app shell, shared workflow parts
-lib/                       global helpers: AI provider chain, model config, cost, utils
-services/                  global services: clients, runs, usage
-types/                     global types: tool contract, run, cost
-schemas/                   global Zod schemas: client config, run
-
-features/
-  registry.ts              slug -> feature, name, status
-  <feature-name>/          one folder per tool, e.g. meeting-to-action
-    components/            UI only this tool uses
-    services/              logic only this tool uses
-    schemas/               Zod schemas for this tool's input and output
-    types/                 types inferred from the schemas
-    prompts/               model prompts
-    index.ts               public API of the feature
-
-clients/                   client config JSON (one file per client)
 tests/                     all tests, separate from source (see TESTING.md)
 ```
+
+Imports use the `@/*` alias, which points at `src/` (for example `@/features/meeting-to-action`).
 
 ### Rules
 - A feature keeps everything it owns inside `features/<feature-name>/`.

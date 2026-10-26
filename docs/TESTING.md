@@ -17,9 +17,9 @@ tests/
 ## 2. Tools
 | Layer | Tool | Runs |
 |---|---|---|
-| Unit and API | Vitest | `npm test` |
-| End to end | Playwright | `npm run test:e2e` |
-| Browser checks by the agent | `playwright-cli` (the `/playwright-cli` skill) | Run against `npm run dev` or the Vercel preview URL (section 5) |
+| Unit and API | Vitest | `pnpm test` |
+| End to end | Playwright | `pnpm test:e2e` |
+| Browser checks by the agent | `playwright-cli` (the `/playwright-cli` skill) | Run against `pnpm dev` or the Vercel preview URL (section 5) |
 
 ## 3. What each layer covers
 | Layer | Covers |
@@ -79,6 +79,6 @@ playwright-cli close
 - `playwright-cli video-start` / `video-stop` can record the demo flow for the Loom backup.
 
 ## 6. Done means
-- `npm test` and `npm run test:e2e` pass.
+- `pnpm test` and `pnpm test:e2e` pass.
 - The playwright-cli flow in section 5 passes for both clients and the failure case, on desktop and 375px, with no console errors.
 - Every acceptance criterion in the feature's tool spec maps to a test or a recorded browser check.
