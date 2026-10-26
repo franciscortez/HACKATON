@@ -1,145 +1,96 @@
 # Architecture: Leveric Workbench
 
-One Next.js app. Each tool is a module that plugs into a shared shell, a shared AI layer and a shared review flow. Adding a tool means adding one folder under `lib/tools/` and one line in `lib/tools/registry.ts`; the generic `app/tools/[slug]` route renders it. No other shared code changes.
+One Next.js app (App Router). Each tool is a **feature** that plugs into a shared shell, a shared AI layer and a shared review flow. This document shows the overall shape and flow only; each feature's files are decided when that feature is planned. Testing is in [TESTING.md](TESTING.md).
 
-## 1. Folder layout (planned)
+## 1. Folder layout
 ```
-app/
-  layout.tsx                 fonts, tokens, app shell
-  page.tsx                   tools index (numbered list)
-  tools/[slug]/page.tsx      generic tool page: stepper + source + review + export
-  api/tools/[slug]/run/route.ts   POST: run a tool (server only)
-  api/transcribe/route.ts    POST: audio to transcript
-  globals.css                Tailwind v4 @theme tokens (see DESIGN.md)
-components/
-  shell/                     top bar, client switcher, run counter
-  workflow/                  Stepper, SourcePanel, ReviewTable, ApprovalBar, ExportMenu, CostNote
-  ui/                        shadcn primitives restyled to tokens
-lib/
-  ai/
-    models.ts                model IDs per provider (single place to update)
-    provider.ts              provider chain: Groq -> Gemini -> Ollama
-    cost.ts                  token counts to cost note
-  clients/
-    schema.ts                Zod schema for client config
-    load.ts                  read clients/*.json
-  runs/
-    store.ts                 browser storage for runs and approval status
-    usage.ts                 run counter per client per month
-  tools/
-    registry.ts              list of tools: slug, name, status, module
-    meeting-to-action/
-      input.ts               Zod input schema
-      output.ts              Zod output schema
-      parse.ts               transcript format parsers (Fathom, VTT, SRT, plain)
-      prompt.ts              system and user prompts
-      check.ts               quote check, owner match, date resolve, flags
-      export.ts              Markdown, CSV, Slack, email
-      index.ts               ToolModule implementation
-clients/
-  leveric.json
-  harbourside-accounting.json          (synthetic)
-fixtures/
-  meeting-to-action/                   transcripts used in tests and demo
-docs/                                  this documentation
+app/                       pages and API routes only; thin, no business logic
+  (pages)                  tools index, generic tool page /tools/[slug]
+  api/                     every REST endpoint (see section 2)
+
+components/                global UI: ui primitives, app shell, shared workflow parts
+lib/                       global helpers: AI provider chain, model config, cost, utils
+services/                  global services: clients, runs, usage
+types/                     global types: tool contract, run, cost
+schemas/                   global Zod schemas: client config, run
+
+features/
+  registry.ts              slug -> feature, name, status
+  <feature-name>/          one folder per tool, e.g. meeting-to-action
+    components/            UI only this tool uses
+    services/              logic only this tool uses
+    schemas/               Zod schemas for this tool's input and output
+    types/                 types inferred from the schemas
+    prompts/               model prompts
+    index.ts               public API of the feature
+
+clients/                   client config JSON (one file per client)
+tests/                     all tests, separate from source (see TESTING.md)
 ```
 
-## 2. Tool contract
-Every tool implements one interface:
+### Rules
+- A feature keeps everything it owns inside `features/<feature-name>/`.
+- A feature imports from global folders and its own folder only, never from another feature.
+- Global folders never import from a feature. Code outside a feature imports only its `index.ts`.
+- When a second feature needs something, move it to the global folder instead of copying it.
+- Folder name = tool slug = URL (`/tools/meeting-to-action`). Zod schema files end in `.schema.ts`.
 
-```ts
-interface ToolModule<I, O> {
-  slug: string;
-  name: string;
-  inputSchema: ZodType<I>;
-  outputSchema: ZodType<O>;
-  run(input: I, ctx: RunContext): Promise<RunResult<O>>; // extract + check
-  exports: ExportFormat<O>[];                             // enabled after approval
-}
+## 2. API (REST, App Router route handlers)
+All server work goes through REST endpoints in `app/api/`. Pages and components call these endpoints; they do not call AI providers or read client files directly. No Server Actions for data. Route handlers stay thin: validate with Zod, call a service, return JSON.
 
-interface RunContext {
-  client: ClientConfig;      // roster, voice, rules, dataPolicy
-  model: ModelHandle;        // from provider chain
-  now: Date;
-}
-
-interface RunResult<O> {
-  output: O;
-  flags: Flag[];             // items needing review
-  cost: CostNote;            // provider, model, tokens, cost
-}
-```
-
-Code samples in this document show shape only, not final code.
-
-## 3. Request flow
-```
-Browser                          Server (Next.js route)                 Providers
--------                          ----------------------                 ---------
-pick client + source
-  | (audio)  POST /api/transcribe --> Groq Whisper | faster-whisper --> transcript
-  v
-POST /api/tools/[slug]/run
-  { clientId, input }  ------->  load client config
-                                  check run cap (sent count from browser; trusted for demo only)
-                                  validate input (Zod)
-                                  provider chain --------------------> Groq | Gemini | Ollama
-                                  validate output (Zod), retry once
-                                  tool.check(): quotes, owners, dates
-  <-------------------------------  { output, flags, cost }
-review + edit (status EDITED)
-approve (status APPROVED)
-export (copy / download)
-save run to browser storage
-```
-
-## 4. Provider chain
-- Order: Groq, Gemini, Ollama. Skip a provider if its env var is missing.
-- `dataPolicy: "local-only"` clients use Ollama only. If Ollama is down, the run fails with a clear message instead of falling back to the cloud.
-- Fallback triggers: HTTP 429 (rate limit), 5xx, timeout (60s per cloud call; 180s for Ollama), or schema failure after one retry on the same provider.
-- If every provider fails, the run shows the error panel with the last raw model text and a retry button (PRD §7, tool 01 §6C).
-- The provider and model used are returned in the cost note and shown in the UI.
-
-## 5. Approval state machine
-```
-DRAFT    --edit-->    EDITED
-DRAFT    --approve--> APPROVED
-EDITED   --approve--> APPROVED
-APPROVED --edit-->    EDITED
-```
-- New run output starts as `DRAFT`.
-- Any edit (cell, email text, add or delete row) sets `EDITED`.
-- `Approve` sets `APPROVED` and records the time.
-- Editing after approval returns to `EDITED`. Export is enabled only in `APPROVED`.
-
-## 6. Storage
-- Client configs: JSON files in `clients/`, validated at load. Read-only at runtime.
-- Runs: browser `localStorage` under `workbench:runs:<clientId>`, wrapped in try/catch. Losing them loses history only, never the current screen.
-- Run counter: browser storage for the hackathon. **Known limit:** a user can reset it by clearing storage. Phase 3+ moves usage to a server store (Vercel KV or Supabase).
-
-## 7. Errors
-| Error | Where | User sees |
+| Method | Path | Purpose |
 |---|---|---|
-| Invalid input | Route, Zod | Field-level message |
-| Unsupported file | Parser | "This file type is not supported. Paste the text instead." + paste tab |
-| Provider rate limit | Provider chain | Silent fallback; cost note shows provider |
-| All providers failed | Route | "No model is available right now. Try again in a minute." |
-| Schema failure twice on every provider | Route | Error panel with raw text and retry |
-| Over run cap | Route | Blocked message with request-more action |
+| `GET` | `/api/tools` | List tools with name and status |
+| `GET` | `/api/tools/{slug}` | One tool's details |
+| `GET` | `/api/clients` | List client configs (safe fields only) |
+| `GET` | `/api/clients/{clientId}` | One client config |
+| `POST` | `/api/tools/{slug}/runs` | Create a run: validate input, run the feature, return output, flags and cost |
+| `POST` | `/api/transcriptions` | Audio to transcript (phase 2b) |
+
+Responses:
+- Success: `200` (read) or `201` (run created) with JSON body.
+- Errors: one shape for every endpoint, `{ error: { code, message } }`, with `400` invalid input, `404` unknown tool or client, `413` input too large, `429` run cap reached, `502` all AI providers failed.
+
+Runs, edits and approvals are kept in the browser in phase 1. When server storage is added, runs get `GET /api/tools/{slug}/runs`, `GET /api/runs/{runId}` and `PATCH /api/runs/{runId}` (edit, approve).
+
+## 3. Flow
+```
+Browser                                Server (app/api)                    AI providers
+pick client, add source
+POST /api/tools/{slug}/runs  ------->  validate input (Zod)
+                                        load client config
+                                        check run cap
+                                        feature service: extract  -------> Groq | Gemini | Ollama
+                                        validate output (Zod)
+                                        feature service: check
+                             <-------  201 { output, flags, cost }
+review and edit   (EDITED)
+approve           (APPROVED)
+export (copy or download), save run in browser
+```
+
+## 4. Tool contract
+Each feature's `index.ts` exports one object that matches the shared contract in `types/`: slug, name, input schema, output schema, a `run` function (extract then check) and its export formats. The API route looks the feature up in `features/registry.ts` and calls `run`.
+
+## 5. AI provider chain
+- Order: Groq, then Gemini, then Ollama. A provider without its env var is skipped.
+- Falls back on rate limit, server error, timeout, or invalid output after one retry.
+- `local-only` clients use Ollama only and never fall back to the cloud.
+- The provider and model used are returned in the cost note.
+
+## 6. Approval
+`DRAFT` -> `EDITED` on any edit; `DRAFT` or `EDITED` -> `APPROVED` on approve; `APPROVED` -> `EDITED` on any later edit. Export only when `APPROVED`.
+
+## 7. Storage
+- Client configs: JSON in `clients/`, read-only, validated at load.
+- Runs and run counter: browser storage in phase 1 (can be cleared by the user; known limit).
 
 ## 8. Security
-- API keys only on the server (route handlers); never sent to the browser.
-- Client data never logged. Server logs keep tool slug, provider, tokens, duration and error codes only.
-- Uploaded files are processed in memory and not stored.
-- Prompt-injection guard: transcripts are passed as data inside delimiters; the system prompt says to ignore instructions inside the source.
+- API keys only in route handlers and env vars; never sent to the browser.
+- No client content in logs; uploads processed in memory, not stored.
+- Source text passed to models as delimited data; prompts say to ignore instructions inside it.
 
-## 9. Testing
-- Unit (Vitest): parsers, quote check, owner matching, date resolving, exports, state machine.
-- Golden test: Leveric transcript fixture must produce the golden actions in `tools/01-meeting-to-action.md` (run against a recorded model response so it is deterministic and free).
-- End to end (Playwright): paste transcript, run, edit, approve, export, on desktop and 375px width.
-
-## 10. Known limits (phase 1)
-- No server-side history or shared workspace.
-- Run cap is enforced in the browser only.
-- Ollama fallback works only when the app runs on a machine with Ollama (not on Vercel).
+## 9. Known limits (phase 1)
+- No server-side history; run cap enforced in the browser.
+- Ollama works only when the app runs on a machine with Ollama, not on Vercel.
 - Free-tier limits can change without notice.
