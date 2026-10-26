@@ -1,9 +1,9 @@
-﻿# Handoff
+# Handoff
 
 Last updated: 26 October 2026, Codex, branch feat/research-to-call-brief.
 
 ## Current status
-Tool 03 integrated with main bc745df (PR #5); checkpoint 5557ab1. Publishing a ready PR, not merging or deploying. Separate Tool 01 v2 worktree untouched.
+Tool 03 integrated with main bc745df (PR #5); checkpoint 5557ab1. Published ready PR #6: https://github.com/franciscortez/HACKATON/pull/6. Integration commit: 053d73d. PR is mergeable; GitHub reports no checks. Not merged or deployed. Separate Tool 01 v2 worktree untouched.
 Preview: http://localhost:3103/tools/research-to-call-brief.
 
 ## Done
@@ -27,4 +27,4 @@ Preview: http://localhost:3103/tools/research-to-call-brief.
 - Long call sheets need edits before PDF. Markdown omits separate city/industry fields. Tool 01 owner accuracy needs human review. Hosting needs 300-second route support.
 
 ## Next step
-Review the published Tool 03 PR before starting another tool. Plan: docs/superpowers/plans/2026-10-26-research-integration.md.
+Review Tool 03 PR #6 before starting another tool. Plan: docs/superpowers/plans/2026-10-26-research-integration.md.
