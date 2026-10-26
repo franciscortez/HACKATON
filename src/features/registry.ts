@@ -3,7 +3,7 @@ import { researchToCallBrief } from "@/features/research-to-call-brief";
 import type { ToolMeta, ToolModule } from "@/types/tool";
 
 const tools: ToolMeta[] = [
-  { slug: "meeting-to-action", index: "01", name: "Meeting to action", summary: "Transcript and team roster to an action register and follow-up email.", status: "LIVE" },
+  { slug: "meeting-to-action", index: "01", name: "Meeting to action", summary: "Any meeting transcript to an action register and follow-up email.", status: "LIVE" },
   { slug: "sources-to-newsletter", index: "02", name: "Sources to newsletter", summary: "Approved sources and audience to a cited newsletter draft.", status: "PLANNED" },
   { slug: "research-to-call-brief", index: "03", name: "Research to call brief", summary: "One website URL to a business dossier, visual brand overview and call sheet.", status: "LIVE" },
   { slug: "url-to-social-content", index: "04", name: "URL to social content", summary: "A public page and brand to three posts and a caption.", status: "PLANNED" },

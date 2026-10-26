@@ -20,7 +20,7 @@ function reply(text: string) {
   });
 }
 
-function rateLimited() {
+function rateLimited(retryAfter?: string) {
   return new MockLanguageModelV4({
     doGenerate: async () => {
       throw new APICallError({
@@ -28,6 +28,7 @@ function rateLimited() {
         url: "https://api.groq.com",
         requestBodyValues: {},
         statusCode: 429,
+        responseHeaders: retryAfter ? {"retry-after": retryAfter} : undefined,
         isRetryable: true,
       });
     },
@@ -107,6 +108,35 @@ describe("generateStructured", () => {
     expect(result.cost.provider).toBe("ollama");
   });
 
+  it("waits and retries the same provider when it asks for a short pause (429 with retry-after)", async () => {
+    let calls = 0;
+    const limited = new MockLanguageModelV4({
+      doGenerate: async (options) => {
+        calls++;
+        if (calls === 1) {
+          throw new APICallError({
+            message: "Rate limit reached",
+            url: "https://api.groq.com",
+            requestBodyValues: {},
+            statusCode: 429,
+            responseHeaders: { "retry-after": "0.01" },
+            isRetryable: true,
+          });
+        }
+        return reply('{"answer":"after wait"}').doGenerate(options);
+      },
+    });
+    const result = await generateStructured({
+      schema,
+      system: "s",
+      prompt: "p",
+      providers: [entry("groq", limited), entry("ollama", reply('{"answer":"local"}'))],
+    });
+    expect(calls).toBe(2);
+    expect(result.cost.provider).toBe("groq");
+    expect(result.object.answer).toBe("after wait");
+  });
+
   it("retries once on invalid output before moving on", async () => {
     let calls = 0;
     const flaky = new MockLanguageModelV4({
@@ -134,4 +164,12 @@ describe("generateStructured", () => {
   it("throws ProviderError when no provider is available", async () => {
     await expect(generateStructured({ schema, system: "s", prompt: "p", providers: [] })).rejects.toBeInstanceOf(ProviderError);
   });
+});
+
+it("retains a safe quota category when no provider succeeds", async () => {
+ await expect(generateStructured({schema,system:"test",prompt:"test",providers:[entry("groq",rateLimited())]})).rejects.toMatchObject({category:"provider_quota",safeMessage:expect.stringContaining("quota")});
+});
+
+it("reports an available long retry hint without waiting or exposing raw errors",async()=>{
+ await expect(generateStructured({schema,system:"test",prompt:"test",providers:[entry("groq",rateLimited("60"))]})).rejects.toMatchObject({safeMessage:expect.stringContaining("60 seconds")});
 });

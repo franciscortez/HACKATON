@@ -1,6 +1,6 @@
 import type { ZodType } from "zod";
 import type { ProviderEntry } from "@/lib/ai/provider";
-import type { ClientConfig } from "@/schemas/client.schema";
+import type { Settings } from "@/schemas/settings.schema";
 import type { CostNote } from "@/types/run";
 
 export type ToolStatus = "LIVE" | "NEXT" | "PLANNED";
@@ -13,12 +13,21 @@ export interface ToolMeta {
   status: ToolStatus;
 }
 
+/** How far a run is: `done` of `total` steps, with a label for the person waiting. */
+export interface RunProgress {
+  done: number;
+  total: number;
+  label: string;
+}
+
 export interface RunContext {
-  client: ClientConfig;
+  settings: Settings;
   now: Date;
-  /** AI providers in fallback order, already filtered by the client's data policy. */
+  /** AI providers in fallback order, already filtered by the data policy. */
   providers: ProviderEntry[];
   signal?: AbortSignal;
+  onProgress?: (progress: RunProgress) => void;
+  onResearch?: (event: { token: string; companyUrl: string; collectedAt: string; usage: import("@/services/research/types").ResearchUsage }) => void;
 }
 
 export interface RunResult<O> {
@@ -32,6 +41,5 @@ export interface ToolModule<I, O> {
   outputSchema: ZodType<O>;
   /** True when the raw input is over the tool's size limit (checked before validation, for a 413). */
   isTooLarge(input: unknown): boolean;
-  getRunLimit?(client: ClientConfig): number;
   run(input: I, ctx: RunContext): Promise<RunResult<O>>;
 }

@@ -16,7 +16,7 @@ Goal: every tool runs for about $0 per run on free tiers, with a local fallback,
 | LLM fallback | Ollama local (7-8B instruct model, Q4) | Offline, private, no rate limit | Electricity only |
 | Speech to text | Groq Whisper (large-v3-turbo) free tier; local faster-whisper fallback | Free, accurate; local copy already installed via the `video-editing` toolchain | $0 |
 | Video (tools 06, 10) | FFmpeg, faster-whisper, HyperFrames (from the `video-editing` skill) | Already installed globally on this machine | $0, CPU time |
-| Storage | Client configs as JSON in repo; runs and approvals in browser storage | No database to set up or pay for in a one-day build | $0 |
+| Storage | One settings JSON in repo; runs and approvals in browser storage | No database to set up or pay for in a one-day build | $0 |
 | Hosting | Vercel Hobby | Free, preview URLs for judging | $0 |
 | API | REST endpoints as App Router route handlers in `app/api/` (no Server Actions for data) | One clear, testable server boundary; keys stay on the server | $0 |
 | Tests | Vitest for unit and API tests; Playwright for one end-to-end path per tool; all in top-level `tests/` (see `TESTING.md`) | Proves "fresh input, reliable output" | $0 |
@@ -44,7 +44,7 @@ Free-tier model names change often. Keep them in one file (`lib/ai/models.ts`) a
 - faster-whisper runs on the CPU (int8). Use model `small` for speed, `medium` for accuracy.
 
 ## Cost controls
-- Per-client monthly run cap in the client config (`usage.runsPerMonth`). The app shows `RUNS used / cap` and blocks runs over the cap with a "request more runs" message (Josh's idea: "only allowed to use the tool three times before emailing to ask for more").
+- No run limit (decision 26 Oct 2026). A 429 with a short `retry-after` (up to 20 s) is waited out once on the same provider before falling back.
 - Input size cap per tool (for example, 60 minutes of audio or 120k characters of transcript).
 - Cost note per run: provider, model, input and output tokens, estimated cost at paid rates (so the cost if the free tier ends is visible), actual cost now.
 - No paid scraping in phase 1. Apify (cents per scrape) is allowed later for research tools, behind a per-client budget.
@@ -82,3 +82,6 @@ Developer Apify MCP 0.19.3 is installed outside the app on this machine. Its lau
 | Groq model | `openai/gpt-oss-120b` (reasoning effort low, 8k output cap) |
 | Gemini model | `gemini-2.5-flash` (thinking budget 1024, 8k output cap) |
 | Local model | `qwen2.5:7b-instruct` in Ollama 0.40.11 (Vulkan, 16k context, 2k output cap) |
+
+
+Tool 03 defaults to native Ollama `/api/chat` with JSON-schema format, explicit 8192-token context and 2500-token output bound. It uses the existing model and server URL (normalising the legacy `/v1` suffix), without changing Tool 01's OpenAI-compatible provider. Cloud Auto is opt-in. Browser recovery is stateless, HMAC-signed and retained for 24 hours; no new dependency or database is required.

@@ -25,13 +25,13 @@ tests/
 | Layer | Covers |
 |---|---|
 | Unit | Parsers, checks, exports, Zod schemas, approval state changes, cost maths |
-| API | Each endpoint in ARCHITECTURE section 2: success status and body, every error code (`400`, `404`, `413`, `429`, `502`), provider fallback |
+| API | Each endpoint in ARCHITECTURE section 2: success status and body, every error code (`400`, `404`, `413`), streamed progress and error events, provider fallback and 429 wait |
 | End to end | One full flow per feature: pick client, add source, run, edit, approve, export; on desktop and 375px width |
 
 ## 4. Rules
 - Tests never call real AI providers. API and unit tests use **recorded model responses** from `tests/fixtures/`, so they are free and give the same result every time.
 - Each feature has a **golden test**: a fixed input must produce the expected output listed in its tool spec (for tool 01, the six golden actions in `tools/01-meeting-to-action.md`).
-- Each feature tests both client configs and at least one failure case from its spec.
+- Each feature tests at least two different real-world inputs and one failure case from its spec.
 - A live smoke run against the real free-tier provider is done by hand before each demo, not in the test suite.
 - No secrets in fixtures. Real client data only where the owner approved it.
 
@@ -46,8 +46,7 @@ Every feature is checked in a real browser with the `/playwright-cli` skill befo
 ### Standard flow per feature
 ```bash
 playwright-cli open http://localhost:3000/tools/<feature-name>
-playwright-cli snapshot                       # find refs for client switcher, source panel, run button
-playwright-cli select <client-ref> "leveric"
+playwright-cli snapshot                       # find refs for source panel and run button
 playwright-cli upload tests/fixtures/<feature-name>/<input-file>
 playwright-cli click <run-ref>
 playwright-cli find "APPROVE"                 # output and approval bar rendered
@@ -64,7 +63,7 @@ playwright-cli close
 | Check | Command |
 |---|---|
 | Phone layout (375px) | `playwright-cli open --mobile` or `playwright-cli resize 375 812`, then `screenshot` |
-| Second client | Repeat the flow with the second client config |
+| Second input | Repeat the flow with a different transcript (for example the synthetic partners meeting) |
 | Failure case | Upload the failure fixture; `find` the expected error message |
 | API errors in UI | `playwright-cli route "**/api/tools/*/runs" --status=502`, run, `find` the error panel, then `unroute` |
 | Reduced motion | `playwright-cli set-reduced-motion reduce`, check no transforms run |
@@ -80,5 +79,5 @@ playwright-cli close
 
 ## 6. Done means
 - `pnpm test` and `pnpm test:e2e` pass.
-- The playwright-cli flow in section 5 passes for both clients and the failure case, on desktop and 375px, with no console errors.
+- The playwright-cli flow in section 5 passes for two inputs and the failure case, on desktop and 375px, with no console errors.
 - Every acceptance criterion in the feature's tool spec maps to a test or a recorded browser check.

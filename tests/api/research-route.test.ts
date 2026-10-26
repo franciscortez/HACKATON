@@ -1,33 +1,27 @@
-import { describe, expect, it, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import { POST } from "@/app/api/tools/[slug]/runs/route";
-import { generateStructured } from "@/lib/ai/provider";
-vi.mock("@/lib/ai/provider", () => ({ generateStructured: vi.fn(), availableProviders: () => [], ProviderError: class extends Error {} }));
-const ctx = { params: Promise.resolve({ slug: "research-to-call-brief" }) };
-const input = { companyUrl: "https://example.com", contact: "Priya", objective: "Explore automation", pastedText: "Example accounting in Geelong." };
-const req = (body: object) => new Request("http://localhost/api/tools/research-to-call-brief/runs", { method: "POST", body: JSON.stringify(body) });
-describe("call brief REST endpoint", () => {
-  it("validates the input", async () => {
-    const result = await POST(req({ clientId: "leveric", input: {} }), ctx);
-    expect(result.status).toBe(400);
-  });
-  it("enforces the research-specific advisory run limit", async () => {
-    const result = await POST(req({ clientId: "leveric", input, usedThisMonth: 20 }), ctx);
-    expect(result.status).toBe(429);
-  });
-  it("returns a safe provider failure and research charges", async () => {
-    vi.mocked(generateStructured).mockRejectedValueOnce(new Error("PRIVATE PROVIDER DATA"));
-    const result = await POST(req({ clientId: "leveric", input }), ctx);
-    const body = await result.json();
-    expect(result.status).toBe(502);
-    expect(body.error.research.costUsd).toBe(0);
-    expect(JSON.stringify(body)).not.toContain("PRIVATE PROVIDER DATA");
-  });
-  it("accepts pasted source evidence without scraping and returns the existing response envelope", async () => {
-    vi.mocked(generateStructured).mockResolvedValue({ object: { summary: "", services: [], audience: [], positioning: [], tone: [], opportunities: [], companyName: { text: "Example", sourceId: "s1", quote: "Example" }, city: null, industry: null, companyFacts: [], contactFacts: [], likelyNeeds: [], competitors: [], talkingPoints: ["How can we help?"], gaps: [] }, cost: { provider: "groq", model: "test", inputTokens: 10, outputTokens: 10, costUsd: 0, estPaidUsd: 0 } });
-    const result = await POST(req({ clientId: "harbourside-accounting", input }), ctx);
-    const body = await result.json();
-    expect(result.status).toBe(201);
-    expect(body.output.sources[0].origin).toBe("pasted");
-    expect(body.cost.research.costUsd).toBe(0);
-  });
+import { generateLocal } from "@/services/research/ollama";
+vi.mock("@/services/research/ollama",()=>({generateLocal:vi.fn(),preflightOllama:vi.fn()}));
+const ctx={params:Promise.resolve({slug:"research-to-call-brief"})};
+const input={companyUrl:"https://example.com",pastedText:"Example builds websites."};
+const request=(body:unknown)=>new Request("http://localhost/api/tools/research-to-call-brief/runs",{method:"POST",body:JSON.stringify(body)});
+const events=async(r:Response)=>(await r.text()).trim().split("\n").map(line=>JSON.parse(line));
+test("rejects invalid and oversized research inputs before streaming",async()=>{
+ expect((await POST(request({input:{}}),ctx)).status).toBe(400);
+ expect((await POST(request({input:{...input,pastedText:"x".repeat(270000)}}),ctx)).status).toBe(413);
+});
+test("advisory cap blocks new collection, not pasted generation",async()=>{
+ expect((await POST(request({input:{...input,pastedText:""},usedThisMonth:20}),ctx)).status).toBe(429);
+ vi.mocked(generateLocal).mockRejectedValue(new Error("private"));
+ expect((await POST(request({input,usedThisMonth:20}),ctx)).status).toBe(200);
+});
+test("streams safe failures with incurred usage",async()=>{
+ vi.mocked(generateLocal).mockRejectedValue(new Error("PRIVATE PROVIDER DATA"));
+ const response=await POST(request({input}),ctx);const data=await events(response);
+ expect(response.headers.get("content-type")).toContain("ndjson");
+ expect(data.at(-1)).toMatchObject({type:"error",research:{costUsd:0}});expect(JSON.stringify(data)).not.toContain("PRIVATE PROVIDER DATA");
+});
+test("streams progress and a dossier result from local evidence",async()=>{
+ vi.mocked(generateLocal).mockResolvedValue({object:{companyName:{text:"Example",evidenceId:"e1"},city:null,industry:null,summary:"Website business",services:["e1"],companyFacts:[],audience:[],positioning:[],tone:[],opportunities:[],gaps:[]},cost:{provider:"ollama",model:"test",inputTokens:1,outputTokens:1,costUsd:0,estPaidUsd:0}});
+ const data=await events(await POST(request({input}),ctx));expect(data[0].type).toBe("progress");expect(data.at(-1)).toMatchObject({type:"result",output:{schemaVersion:2,companyName:{text:"Example"}}});
 });

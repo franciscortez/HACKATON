@@ -16,12 +16,12 @@ export const extractionSchema = z.object({
   openQuestions: z.array(z.object({ text: z.string(), quote: z.string() })),
 });
 
-export const flagSchema = z.enum(["owner-unknown", "date-unknown", "owner-not-in-roster", "ambiguous"]);
+export const flagSchema = z.enum(["owner-unknown", "date-unknown", "owner-not-in-transcript", "ambiguous"]);
 
 export const actionSchema = z.object({
   id: z.string(),
   task: z.string(),
-  /** A roster name, or "Unassigned". */
+  /** A person in the meeting, or "Unassigned". */
   owner: z.string(),
   /** ISO date (YYYY-MM-DD), or "No date". */
   due: z.string(),
@@ -37,6 +37,8 @@ export const emailSchema = z.object({ subject: z.string(), body: z.string() });
 
 export const outputSchema = z.object({
   actions: z.array(actionSchema),
+  /** Speakers plus anyone named as an owner: the choices offered when reviewing owners. */
+  people: z.array(z.string()),
   decisions: z.array(z.object({ text: z.string(), quote: z.string(), verified: z.boolean() })),
   openQuestions: z.array(z.object({ text: z.string(), quote: z.string(), verified: z.boolean() })),
   email: emailSchema,

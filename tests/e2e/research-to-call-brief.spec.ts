@@ -9,9 +9,8 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => localStorage.clear());
   await page.route("**/api/tools/research-to-call-brief/runs", route => route.fulfill({ status: 201, contentType: "application/json", body: recorded }));
 });
-for (const client of ["leveric", "harbourside-accounting"]) test(`cited brief, edit, approval and export for ${client}`, async ({ page }) => {
+test("legacy cited brief, edit, approval and export", async ({ page }) => {
   await page.goto(path);
-  await page.getByLabel("Client", { exact: true }).selectOption(client);
   await fill(page);
   await page.getByRole("button", { name: "Research website", exact: true }).click();
   await expect(page.getByLabel("Company fact 1", { exact: true })).toHaveValue("Founded in 2008");
@@ -32,32 +31,9 @@ test("blocked website offers pasted-source recovery", async ({ page }) => {
   await page.goto(path); await fill(page);
   await page.getByRole("button", { name: "Research website", exact: true }).click();
   await expect(page.getByText("No readable source text was found. Paste source text to continue.")).toBeVisible();
+  await page.getByText("Paste source text instead",{exact:true}).click();
   await expect(page.getByLabel("Pasted source text", { exact: true })).toBeVisible();
 });
-test("switching clients hides the previous result", async ({ page }) => {
-  await page.goto(path); await fill(page);
-  await page.getByRole("button", { name: "Research website", exact: true }).click();
-  await expect(page.getByLabel("Company fact 1", { exact: true })).toBeVisible();
-  await page.getByLabel("Client", { exact: true }).selectOption("harbourside-accounting");
-  await expect(page.getByLabel("Company fact 1", { exact: true })).toHaveCount(0);
-});
-
-test("client switch while a run is pending never displays the old result", async ({ page }) => {
-  let release = () => {};
-  const pending = new Promise<void>(resolve => { release = resolve; });
-  await page.route("**/api/tools/research-to-call-brief/runs", async route => {
-    await pending;
-    await route.fulfill({ status: 201, contentType: "application/json", body: recorded }).catch(() => {});
-  });
-  await page.goto(path); await fill(page);
-  const request = page.waitForRequest("**/api/tools/research-to-call-brief/runs");
-  await page.getByRole("button", { name: "Research website", exact: true }).click(); await request;
-  await page.getByLabel("Client", { exact: true }).selectOption("harbourside-accounting");
-  release();
-  await expect(page.getByLabel("Business URL", { exact: true })).toHaveValue("");
-  await expect(page.getByLabel("Company fact 1", { exact: true })).toHaveCount(0);
-});
-
 test("approved brief prints on one A4 page without expanded evidence", async ({ page }) => {
   await page.goto(path); await fill(page);
   await page.getByRole("button", { name: "Research website", exact: true }).click();

@@ -1,3 +1,4 @@
+import { CHUNK_CHARS } from "@/features/meeting-to-action/constants";
 import type { Extraction } from "@/features/meeting-to-action/types";
 
 /**
@@ -56,4 +57,9 @@ export function mergeExtractions(parts: Extraction[]): Extraction {
     merged.openQuestions.push(...part.openQuestions.filter((q) => !repeats(q, previous?.openQuestions)));
   });
   return merged;
+}
+
+/** The parts a transcript is read in (one model call each). */
+export function transcriptChunks(transcriptText: string): string[] {
+  return chunkText(transcriptText, CHUNK_CHARS);
 }

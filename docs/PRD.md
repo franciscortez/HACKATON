@@ -41,33 +41,27 @@ Based on slide 14.
 
 | Step | What happens | Rules |
 |---|---|---|
-| 01 · Source | User picks a client config, adds the source (paste, file, audio, URL) and an optional brief | A blocked or unreadable source shows why and offers a paste-text fallback |
+| 01 · Source | User adds the source (paste, file, audio, URL) and an optional brief | A blocked or unreadable source shows why and offers a paste-text fallback |
 | 02 · Extract | Server runs the tool's prompt through the provider chain; output is validated against the tool's Zod schema | Invalid output is retried once, then shown as an error with the raw text available |
 | 03 · Review | User edits the output in place; every item shows its source quote | Every edit sets status to `EDITED`; flagged items (unknown, conflicting, missing) are highlighted |
 | 04 · Export | User approves, then copies or downloads | Export is disabled until status is `APPROVED`; nothing is sent automatically |
 
-## 8. Client configuration (reuse through configuration)
-One JSON file per client in `clients/`. Shared fields:
+## 8. Workspace settings (one workspace, no client setup)
+Decision 26 Oct 2026: the workbench is Leveric's own tool, with no client switcher and no run limit. One settings file, `src/data/settings.json`:
 
 | Field | Example | Used for |
 |---|---|---|
-| `id`, `name` | `leveric`, "Leveric" | Switcher, exports |
-| `industry`, `region` | "AI services", "AU" | Prompt context, spelling |
-| `brand.voice` | "Direct, plain, AU spelling" | Draft tone |
-| `brand.signOff` | "Cheers, Josh" | Email drafts |
-| `team[]` | `{ name, aliases[], role, email, slack? }` | Owner matching; optional Slack handle for `@` mentions in exports (plain name when missing) |
-| `rules[]` | "Never commit to dates on behalf of the client" | Added to every prompt |
-| `usage.runsPerMonth` | `20` | Cost cap |
-| `tools.<slug>` | Tool-specific settings | e.g. export format, catalogue file |
-| `dataPolicy` | `"local-only"` or `"cloud-ok"` | `local-only` forces the Ollama provider |
+| `name`, `region` | "Leveric", "AU" | Email sender, date zone |
+| `brand.voice` | "Direct, plain and friendly" | Email tone |
+| `brand.signOff` | "Cheers, Josh" | Email sign-off |
+| `rules[]` | "Only list work people agreed to do" | Added to every prompt |
+| `dataPolicy` | `"cloud-ok"` or `"local-only"` | `local-only` uses the local model only |
 
-Two seeded clients ship with every tool:
-1. **Leveric** (internal, real data owned by Leveric).
-2. **Harbourside Accounting** (synthetic, a 12-person accounting firm in Geelong). Labelled "Synthetic demo client" in the UI.
+There is no team roster. Tools work on any input: Meeting to action takes owners from the people in the transcript (speakers, plus anyone named in it).
 
 ## 9. Cost policy
 - Target: $0.00 per run on free tiers. Show estimated cost at paid rates next to it.
-- Hard cap: runs per client per month, and input size per tool.
+- Hard cap: input size per tool. There is no run limit (decision 26 Oct 2026).
 - Each tool spec states its expected tokens per run and its worst case.
 - Paid services (Apify, paid models) need a per-client budget field before use.
 
@@ -83,7 +77,7 @@ Status: `LIVE` built and demoed, `NEXT` being built, `PLANNED` spec only.
 
 | # | Tool | Input to output | Spec | Status |
 |---|---|---|---|---|
-| 01 | Meeting to action | Transcript or audio + roster to action register + email draft | [tools/01-meeting-to-action.md](tools/01-meeting-to-action.md) | LIVE |
+| 01 | Meeting to action | Any meeting transcript to action register + email draft | [tools/01-meeting-to-action.md](tools/01-meeting-to-action.md) | LIVE |
 | 02 | Sources to newsletter | Approved URLs + audience to cited newsletter draft | [tools/02-sources-to-newsletter.md](tools/02-sources-to-newsletter.md) | PLANNED |
 | 03 | Research to call brief | Website URL to business/brand dossier and one-page call sheet | [tools/03-research-to-call-brief.md](tools/03-research-to-call-brief.md) | LIVE (local) |
 | 04 | URL to social content | Page + brand to three posts and a caption | [tools/04-url-to-social-content.md](tools/04-url-to-social-content.md) | PLANNED |
@@ -99,9 +93,9 @@ Status: `LIVE` built and demoed, `NEXT` being built, `PLANNED` spec only.
 |---|---|---|
 | Customer value and commercial use | 30 | Product note per tool: buyer, recurring job, current workaround, time saved |
 | Functionality, reliability, demo | 25 | Fresh input run live in the demo; schema validation; retry; provider fallback; failure case shown |
-| Reusability across clients | 20 | Two client configs, same code, different outputs |
+| Reusability across clients | 20 | Works on any meeting with no setup: owners come from the transcript itself. Shown with a real Leveric meeting and a synthetic accounting-firm meeting |
 | UX and output quality | 15 | Leveric design system; source quotes; editable output; clean exports |
-| Maintainability, cost, safeguards | 10 | Cost note per run; run caps; local-only mode; handover doc |
+| Maintainability, cost, safeguards | 10 | Cost note per run; free tiers with local fallback; local-only mode; handover doc |
 
 ## 13. Submission checklist (slide 16)
 - [ ] Working build: Vercel URL, setup steps in `README.md`, reproducible from a clean clone.

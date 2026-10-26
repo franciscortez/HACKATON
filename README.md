@@ -2,9 +2,7 @@
 
 Leveric's client tools in one app. Each tool turns a source (a meeting transcript, a page, a brief) into reviewed, export-ready work: **Source → Extract → Review → Approve → Export**. Nothing is sent automatically.
 
-Tool 01, **Meeting to action**, is live: transcript in; action register, decisions, open questions and a follow-up email out. Owners come only from the client's roster and dates only from what was said, so unknowns stay "Unassigned" and "No date".
-
-Tool 03, **Research to call brief**, accepts one website URL and produces an evidence-backed business dossier, observed visual brand and a one-page Leveric call sheet. Review, edit, rebuild a stale call sheet and approve before Markdown or A4 exports. Previous results remain readable.
+Tool 01, **Meeting to action**, is live: transcript in; action register, decisions, open questions and a follow-up email out. Owners come only from people in the meeting and dates only from what was said, so unknowns stay "Unassigned" and "No date".
 
 ## Run it
 
@@ -12,7 +10,7 @@ Requirements: Node 24, pnpm 10. Optional: [Ollama](https://ollama.com) for the l
 
 ```bash
 pnpm install
-cp .env.example .env.local    # add keys: GROQ_API_KEY, GOOGLE_GENERATIVE_AI_API_KEY; APIFY_API_KEY for URL research
+cp .env.example .env          # add free keys: GROQ_API_KEY, GOOGLE_GENERATIVE_AI_API_KEY
 ollama pull qwen2.5:7b-instruct   # optional local fallback
 pnpm dev                      # http://localhost:3000
 ```
@@ -31,14 +29,17 @@ Sample inputs are in `tests/fixtures/meeting-to-action/`: a real Leveric L10 tra
 
 ## Cost
 
-Free tiers and local models: **$0.00 model cost per run**. Every run shows its provider, tokens and the estimated cost at paid rates (about $0.001 for a short meeting, about $0.012 for a 45-minute one). Each client has a monthly run cap (`src/data/clients/*.json`).
-
-Tool 03 uses bounded Apify browser research: **US$0.10 is a target, not a guaranteed ceiling**. Each run allows six pages, one concurrent page, no retries and a 120-second Actor timeout. Actual charges are reported. The verified Leveric URL run took 10 seconds and cost US$0.000317; diagnostic attempts were separate. Monthly counters are advisory browser storage. Pasted-source recovery skips Apify; local-only clients use Ollama without cloud research.
-
-The app calls Apify REST directly. Developer MCP is optional and separate; it is installed and verified on the current development machine, with details in `docs/HANDOFF.md`. No MCP package is needed to deploy the app.
-
-For an isolated worktree browser run, set `PLAYWRIGHT_BASE_URL=http://localhost:3103` before `pnpm test:e2e`; this prevents reusing another workspace's server.
+Free tiers and local models: **$0.00 per run**. Every run shows its provider, tokens and the estimated cost at paid rates (about $0.001 for a short meeting, about $0.012 for a 45-minute one). There is no run limit; workspace voice and sign-off are in `src/data/settings.json`.
 
 ## Docs
 
 Start with `AGENTS.md` and `docs/HANDOFF.md`. Product: `docs/PRD.md`. Design: `docs/DESIGN.md`. Structure and API: `docs/ARCHITECTURE.md`. Tests: `docs/TESTING.md`. Tool spec: `docs/tools/01-meeting-to-action.md`.
+
+
+## Research to call brief
+
+Tool 03 takes one business URL and produces a sourced dossier, measured website branding and an editable call sheet. Ollama is the default AI processor. Start Ollama on the application server and install `qwen2.5:7b-instruct`; the research adapter requests an 8192-token context through the native API. Select Auto explicitly to allow Groq/Gemini fallback. Local AI mode still uses Apify for URLs; pasted source text avoids scraping. Workspace local-only policy prohibits both cloud AI and new website collection.
+
+Apify needs `APIFY_API_KEY` in `.env.local`. The browser Actor is bounded to six pages, concurrency one, no retries and 120 seconds. US$0.10 is a target, not a guaranteed ceiling. Research has a four-minute total deadline. Failed AI generation retains signed collected research for 24 hours; Retry generation reuses it without another scraping charge. Screenshots expire after seven days or earlier Apify storage expiry.
+
+Run this worktree with `pnpm dev --port 3103`. Browser checks: `$env:PLAYWRIGHT_BASE_URL='http://localhost:3103'; pnpm test:e2e`. Existing Leveric history is retained; old demo reports are labelled and copied into workspace history when edited.

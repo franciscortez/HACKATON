@@ -10,10 +10,10 @@ src/
     api/                   every REST endpoint (see section 2)
   components/              global UI: ui primitives, app shell, shared workflow parts
   lib/                     global helpers: AI provider chain, model config, cost, utils
-  services/                global services: clients, runs, usage
+  services/                global services: settings, run history
   types/                   global types: tool contract, run, cost
-  schemas/                 global Zod schemas: client config, run
-  data/clients/            client config JSON (one file per client)
+  schemas/                 global Zod schemas: workspace settings
+  data/settings.json       workspace settings (voice, sign-off, rules, data policy)
   features/
     registry.ts            slug -> feature, name, status
     <feature-name>/        one folder per tool, e.g. meeting-to-action
@@ -43,14 +43,12 @@ All server work goes through REST endpoints in `app/api/`. Pages and components 
 |---|---|---|
 | `GET` | `/api/tools` | List tools with name and status |
 | `GET` | `/api/tools/{slug}` | One tool's details |
-| `GET` | `/api/clients` | List client configs (safe fields only) |
-| `GET` | `/api/clients/{clientId}` | One client config |
-| `POST` | `/api/tools/{slug}/runs` | Create a run: validate input, run the feature, return output, flags and cost |
+| `POST` | `/api/tools/{slug}/runs` | Run a tool. Bad requests get a JSON error; a valid run streams NDJSON events: `progress` (done, total, label), then `result` (output, cost) or `error` (code, plain message) |
 | `POST` | `/api/transcriptions` | Audio to transcript (phase 2b) |
 
 Responses:
 - Success: `200` (read) or `201` (run created) with JSON body.
-- Errors: one shape for every endpoint, `{ error: { code, message } }`, with `400` invalid input, `404` unknown tool or client, `413` input too large, `429` run cap reached, `502` all AI providers failed.
+- Errors: one shape for every endpoint, `{ error: { code, message } }`, with `400` invalid input, `404` unknown tool, `413` input too large. Failures during a run arrive as an `error` event with a plain message; model output never reaches the browser.
 
 Runs, edits and approvals are kept in the browser in phase 1. When server storage is added, runs get `GET /api/tools/{slug}/runs`, `GET /api/runs/{runId}` and `PATCH /api/runs/{runId}` (edit, approve).
 
@@ -59,12 +57,11 @@ Runs, edits and approvals are kept in the browser in phase 1. When server storag
 Browser                                Server (app/api)                    AI providers
 pick client, add source
 POST /api/tools/{slug}/runs  ------->  validate input (Zod)
-                                        load client config
-                                        check run cap
+                                        load workspace settings
                                         feature service: extract  -------> Groq | Gemini | Ollama
                                         validate output (Zod)
                                         feature service: check
-                             <-------  201 { output, flags, cost }
+                             <-------  stream: progress ... result { output, cost }
 review and edit   (EDITED)
 approve           (APPROVED)
 export (copy or download), save run in browser
@@ -83,7 +80,7 @@ Each feature's `index.ts` exports one object that matches the shared contract in
 `DRAFT` -> `EDITED` on any edit; `DRAFT` or `EDITED` -> `APPROVED` on approve; `APPROVED` -> `EDITED` on any later edit. Export only when `APPROVED`.
 
 ## 7. Storage
-- Client configs: JSON in `clients/`, read-only, validated at load.
+- Workspace settings: `src/data/settings.json`, read-only, validated at load.
 - Runs and run counter: browser storage in phase 1 (can be cleared by the user; known limit).
 
 ## 8. Security
@@ -92,22 +89,14 @@ Each feature's `index.ts` exports one object that matches the shared contract in
 - Source text passed to models as delimited data; prompts say to ignore instructions inside it.
 
 ## 9. Known limits (phase 1)
-- No server-side history; run cap enforced in the browser.
+- No server-side history.
 - Ollama works only when the app runs on a machine with Ollama, not on Vercel.
 - Free-tier limits can change without notice.
 
-## 10. Research to call brief
+## 10. Website research
 
-The shared research layer owns URL validation, bounded Apify lifecycle, rendered HTML extraction, visual observations and signed preview retrieval. Tool 03 owns its versioned schemas, Leveric capability catalogue, composition, evidence checks, review and exports. No feature cross-imports.
+Tool 03 follows the single-workspace settings contract and shares the streamed run endpoint with Tool 01. RunContext retains progress and adds cancellation plus a research-collection callback. Research settings hold enabled/maxRunUsd/runsPerMonth; the browser count remains advisory.
 
-`POST /api/tools/{slug}/runs` accepts the existing envelope. Tool 03 requires only companyUrl; legacy contact/objective values are optional context. New results have schemaVersion 2, dossier, brand, callSheet, callSheetStale and editedSections, plus compatible source/brief fields. Legacy browser records use the original renderer; malformed v2 records cannot silently fall back to v1.
+Shared services own guarded Apify collection, preview signing, recovery signing and native Ollama structured generation. Feature services own evidence-unit selection and dossier composition. The optional local/auto AI choice defaults to local for research only. The native local adapter leaves Tool 01's existing provider chain unchanged.
 
-`GET /api/research/preview?token=...` verifies a seven-day HMAC reference to an Actor key-value store and a fixed preview key. It fetches only the Apify API, limits image bytes to 3 MB and checks JPEG type/signature. Raw HTML and image binaries are not stored in browser history. History includes optional run cost; older entries may lack it.
-
-Each browser run permits at most six pages, concurrency one, no retries, a 120-second Actor timeout and a four-minute overall deadline. Apify maxTotalChargeUsd does not enforce limits on pay-per-usage Actors; settings.maxRunUsd is retained for compatibility but represents the US$0.10 target for this mode. ResearchUsage.budgetPolicy distinguishes target from older allocations. Known charges, including partial work, remain visible; ambiguous starts are never automatically retried.
-
-Browser scripts are fixed application code. Pre-navigation hooks block private/reserved DNS destinations, unsafe URL schemes, credentials, nonstandard ports, non-read request methods and WebSockets. Chromium bypasses service workers during collection. Public CDNs may load CSS/images/fonts. No prospect scripts or HTML are executed inside the app; visual observations are data, not trusted markup. App credentials are never placed in browser page context.
-
-Source extracts are checked against captured text. Synthesis and suggested opportunities remain labelled interpretations; hypotheses must cite an observed extract and a documented capability. Dossier edits invalidate the call sheet; rebuilding explicitly replaces prior call-sheet edits. Approval gates exports, and long print content is blocked rather than truncated.
-
-Local-only clients skip Apify and DNS entirely, using pasted material with Ollama. Monthly counters and history are browser-local; no authentication or durable server database was added. Deployments require a hosting plan supporting the 300-second route duration. Developer MCP remains separate from the application.
+The stream emits a signed research snapshot before generation. It includes collected sources, observed branding, original URL/time and usage. HMAC signing uses the Apify key with a recovery-specific domain separator and 24-hour expiry; the browser stores the opaque token. A verified retry goes straight to generation. No database or new storage infrastructure is introduced. Original browser history keys remain intact, with labelled legacy demo reports copied to workspace history on edit.

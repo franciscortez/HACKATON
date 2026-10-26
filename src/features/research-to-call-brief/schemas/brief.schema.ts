@@ -3,6 +3,8 @@ import { researchSourceSchema } from "@/services/research/types";
 
 export const MAX_INPUT = 40_000;
 export const inputSchema = z.object({
+  aiMode: z.enum(["local", "auto"]).default("local"),
+  recoveryToken: z.string().max(240000).optional(),
   companyUrl: z.string().trim().max(2048).transform(value => /^[\w+.-]+:/.test(value) ? value : `https://${value}`)
     .pipe(z.url({ protocol: /^https?$/ }))
     .refine(value => { const url = new URL(value); return !url.username && !url.password; }, "Remove credentials from the business URL.")

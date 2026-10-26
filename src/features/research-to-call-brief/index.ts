@@ -7,7 +7,6 @@ import type { ToolModule } from "@/types/tool";
 
 export const researchToCallBrief: ToolModule<BriefInput, DossierOutput> = {
   slug: "research-to-call-brief", inputSchema, outputSchema: dossierOutputSchema,
-  getRunLimit: client => client.tools?.["research-to-call-brief"]?.runsPerMonth ?? 20,
   isTooLarge(input) {
     return typeof input === "object" && input !== null && "pastedText" in input && typeof input.pastedText === "string" && input.pastedText.length > MAX_INPUT;
   },

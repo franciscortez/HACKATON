@@ -1,30 +1,39 @@
 import { readFileSync } from "node:fs";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
-/** The runs API is replaced by a recorded response, so this test never calls a model. */
-const recorded = readFileSync("tests/fixtures/meeting-to-action/api-run-harbourside.json", "utf8");
+/** The runs API is replaced by a recorded, streamed response, so this test never calls a model. */
+const recorded = JSON.parse(readFileSync("tests/fixtures/meeting-to-action/api-run-harbourside.json", "utf8"));
 const transcript = readFileSync("tests/fixtures/meeting-to-action/harbourside-partners.md", "utf8");
-const status = (page: import("@playwright/test").Page) => page.getByText(/^(DRAFT|EDITED|APPROVED)$/);
+const ndjson = (...events: object[]) => events.map((e) => JSON.stringify(e)).join("\n") + "\n";
+const status = (page: Page) => page.getByText(/^(DRAFT|EDITED|APPROVED)$/);
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => localStorage.clear());
   await page.route("**/api/tools/meeting-to-action/runs", (route) =>
-    route.fulfill({ status: 201, contentType: "application/json", body: recorded }),
+    route.fulfill({
+      status: 200,
+      contentType: "application/x-ndjson",
+      body: ndjson(
+        { type: "progress", done: 0, total: 2, label: "Reading the transcript" },
+        { type: "progress", done: 1, total: 2, label: "Drafting the follow-up email" },
+        { type: "result", ...recorded },
+      ),
+    }),
   );
 });
 
-test("source to approved export for a synthetic client", async ({ page }) => {
+test("any transcript to an approved export", async ({ page }) => {
   await page.goto("/tools/meeting-to-action");
-  await page.getByLabel("Client").selectOption("harbourside-accounting");
-  await expect(page.getByText(/Synthetic demo client/i)).toBeVisible();
+  await expect(page.getByText("How it works")).toBeVisible();
 
   await page.getByLabel("Transcript text").fill(transcript);
+  await expect(page.getByText("Transcript check")).toBeVisible();
   await page.getByRole("button", { name: /Extract actions/ }).click();
 
+  // The result replaces the source form.
   await expect(page.getByLabel("Action register").getByRole("listitem").first()).toBeVisible();
+  await expect(page.getByLabel("Transcript text")).toBeHidden();
   await expect(status(page)).toHaveText("DRAFT");
-  await expect(page.getByRole("button", { name: "Download CSV" })).toBeDisabled();
-  await expect(page.getByText(/Runs 1 \/ 20/i)).toBeVisible();
+  await expect(page.getByRole("button", { name: "CSV", exact: true })).toBeDisabled();
 
   await page.getByLabel("Owner for task 1", { exact: true }).selectOption("Unassigned");
   await expect(status(page)).toHaveText("EDITED");
@@ -33,25 +42,31 @@ test("source to approved export for a synthetic client", async ({ page }) => {
   await expect(status(page)).toHaveText("APPROVED");
 
   const download = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Download CSV" }).click();
+  await page.getByRole("button", { name: "CSV", exact: true }).click();
   expect((await download).suggestedFilename()).toMatch(/^actions-.*\.csv$/);
 
+  await page.getByRole("tab", { name: /Email/ }).click();
   await page.getByLabel("Email subject").fill("Partners meeting actions");
   await expect(status(page)).toHaveText("EDITED");
-  await expect(page.getByRole("button", { name: "Download CSV" })).toBeDisabled();
+
+  // Start again brings back an empty source form.
+  await page.getByRole("button", { name: /New transcript/ }).click();
+  await expect(page.getByLabel("Transcript text")).toHaveValue("");
 });
 
-test("shows the error panel when every model fails", async ({ page }) => {
+test("a failed run shows a plain message, never model output", async ({ page }) => {
   await page.route("**/api/tools/meeting-to-action/runs", (route) =>
     route.fulfill({
-      status: 502,
-      contentType: "application/json",
-      body: JSON.stringify({ error: { code: "providers_failed", message: "No model is available right now. Try again in a minute." } }),
+      status: 200,
+      contentType: "application/x-ndjson",
+      body: ndjson({ type: "error", code: "providers_failed", message: "We couldn't finish reading this transcript. Please try again in a minute." }),
     }),
   );
   await page.goto("/tools/meeting-to-action");
-  await page.getByLabel("Transcript text").fill("Josh: Jaz, reply to Ruth by tomorrow night.");
+  await page.getByLabel("Transcript text").fill("Sam: Alex, send the proposal by Friday.");
   await page.getByRole("button", { name: /Extract actions/ }).click();
-  await expect(page.getByText("No model is available right now. Try again in a minute.")).toBeVisible();
+  await expect(page.getByText("We couldn't finish reading this transcript. Please try again in a minute.")).toBeVisible();
+  await expect(page.getByText(/raw model text/i)).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Try again/ })).toBeVisible();
+  await expect(page.getByLabel("Transcript text")).toHaveValue("Sam: Alex, send the proposal by Friday.");
 });

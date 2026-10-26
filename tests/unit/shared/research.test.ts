@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
-import { clientSchema } from "@/schemas/client.schema";
-import leveric from "@/data/clients/leveric.json";
+import { settingsSchema } from "@/schemas/settings.schema";
+import leveric from "@/data/settings.json";
 import { publicUrl } from "@/services/research/url";
 import { ApifySession } from "@/services/research/apify";
 
 describe("research configuration and URL boundary", () => {
   it("keeps explicit budget settings and rejects budgets above the approved ceiling", () => {
-    const config = { ...leveric, tools: { "research-to-call-brief": { enabled: true, maxRunUsd: 0.1, runsPerMonth: 20 } } };
-    expect(clientSchema.parse(config).tools?.["research-to-call-brief"]?.maxRunUsd).toBe(0.1);
-    expect(clientSchema.safeParse({ ...config, tools: { "research-to-call-brief": { enabled: true, maxRunUsd: 10, runsPerMonth: 20 } } }).success).toBe(false);
+    const config = { ...leveric, research: { enabled: true, maxRunUsd: 0.1, runsPerMonth: 20 } };
+    expect(settingsSchema.parse(config).research.maxRunUsd).toBe(0.1);
+    expect(settingsSchema.safeParse({ ...config, research: { enabled: true, maxRunUsd: 10, runsPerMonth: 20 } }).success).toBe(false);
   });
   it.each(["http://localhost", "http://127.0.0.1", "http://10.0.0.1", "http://169.254.169.254", "http://[::1]", "file:///etc/passwd", "https://user:pass@example.com", "https://example.local", "http://2130706433"])("rejects unsafe URL %s", async url => {
     await expect(publicUrl(url)).rejects.toThrow();

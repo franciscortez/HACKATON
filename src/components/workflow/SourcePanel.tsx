@@ -5,6 +5,8 @@ import { cx } from "@/lib/utils";
 
 interface Props {
   value: string;
+  /** Name of the uploaded file, if the text came from one. */
+  fileName?: string;
   onChange: (text: string, fileName?: string) => void;
   accept: string;
   placeholder: string;
@@ -12,9 +14,8 @@ interface Props {
 }
 
 /** Paste or upload a text source. Upload problems always fall back to the paste tab. */
-export function SourcePanel({ value, onChange, accept, placeholder, maxChars }: Props) {
+export function SourcePanel({ value, fileName, onChange, accept, placeholder, maxChars }: Props) {
   const [tab, setTab] = useState<"paste" | "upload">("paste");
-  const [fileName, setFileName] = useState<string>();
   const [fileError, setFileError] = useState<string>();
 
   async function onFile(e: ChangeEvent<HTMLInputElement>) {
@@ -28,7 +29,6 @@ export function SourcePanel({ value, onChange, accept, placeholder, maxChars }: 
     }
     const text = await file.text();
     setFileError(undefined);
-    setFileName(file.name);
     onChange(text, file.name);
   }
 
@@ -49,7 +49,7 @@ export function SourcePanel({ value, onChange, accept, placeholder, maxChars }: 
         <textarea
           aria-label="Transcript text"
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => onChange(e.target.value, undefined)}
           placeholder={placeholder}
           className="mt-3 h-64 w-full resize-y border border-rule-l bg-white p-3 font-mono text-[13px] leading-relaxed"
         />

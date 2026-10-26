@@ -1,1 +1,131 @@
-{"output":{"actions":[{"id":"a1","task":"Chase missing documents for fourteen clients","owner":"Sophie Tran","due":"2026-10-28","dueText":"by Wednesday","priority":"normal","quote":"Sophie, can you chase the missing documents for those fourteen clients by Wednesday?","timestamp":"0:52","confidence":"high","flags":[]},{"id":"a2","task":"Send reminder emails and follow up by phone","owner":"Sophie Tran","due":"2026-10-27","dueText":"today","priority":"normal","quote":"Yes, I'll send the reminder emails today and follow up by phone on Wednesday.","timestamp":"1:04","confidence":"high","flags":[]},{"id":"a3","task":"Call Mr Patel to explain timeline in writing","owner":"David O'Neill","due":"2026-10-28","dueText":"tomorrow","priority":"normal","quote":"Will do, I'll call him tomorrow.","timestamp":"1:52","confidence":"high","flags":[]},{"id":"a4","task":"Book kickoff call with Coastal Joinery and request Xero invite","owner":"Liam Walsh","due":"2026-11-03","dueText":"next Tuesday","priority":"normal","quote":"Liam, can you book the kickoff call with Coastal Joinery for next Tuesday and ask for the Xero invite before then?","timestamp":"2:41","confidence":"high","flags":[]},{"id":"a5","task":"Book the kickoff call this afternoon","owner":"Liam Walsh","due":"No date","dueText":"this afternoon","priority":"normal","quote":"Yes. I'll book it this afternoon.","timestamp":"2:50","confidence":"medium","flags":["date-unknown"]},{"id":"a6","task":"Get a quote from the removalist","owner":"Liam Walsh","due":"No date","dueText":"by the end of next week","priority":"normal","quote":"Liam, please get a quote from the removalist by the end of next week.","timestamp":"4:22","confidence":"medium","flags":["date-unknown"]}],"decisions":[{"text":"Do not promise ATO outcomes to clients.","quote":"We never promise an outcome from the ATO.","verified":true},{"text":"Keep phone numbers the same for the office move.","quote":"Yes, decision stands, same numbers.","verified":true},{"text":"Assign Coastal Joinery bank reconciliations to Priya when she returns.","quote":"Priya can take the reconciliations when she's back.","verified":true}],"openQuestions":[{"text":"Is there enough secure storage for paper files in the new office?","quote":"Do we know if the new office has enough secure storage for the paper files?","verified":true}],"email":{"subject":"Actions from Partners meeting","body":"Hi team, \n\nHere are the actions from Partners meeting.\n\nDavid O'Neill:\n- Call Mr Patel to explain timeline in writing (due 2026-10-28)\n\nSophie Tran:\n- Chase missing documents for fourteen clients (due 2026-10-28)\n- Send reminder emails and follow up by phone (due 2026-10-27)\n\nLiam Walsh:\n- Book kickoff call with Coastal Joinery and request Xero invite (due 2026-11-03)\n- Book the kickoff call this afternoon\n- Get a quote from the removalist\n\nDecisions:\n- Do not promise ATO outcomes to clients.\n- Keep phone numbers the same for the office move.\n- Assign Coastal Joinery bank reconciliations to Priya when she returns.\n\nNeeds an owner:\n- Book kickoff call with Coastal Joinery and request Xero invite (due 2026-11-03)\n- Book the kickoff call this afternoon\n- Get a quote from the removalist\n\nKind regards, \nHarbourside Accounting\n\nKind regards, Harbourside Accounting"},"warnings":[]},"cost":{"provider":"ollama","model":"qwen2.5:7b-instruct","inputTokens":1706,"outputTokens":1945,"costUsd":0,"estPaidUsd":0.00122}}
+{
+  "output": {
+    "actions": [
+      {
+        "id": "a1",
+        "task": "Chase missing documents for fourteen clients",
+        "owner": "Sophie Tran",
+        "due": "2026-10-28",
+        "dueText": "Wednesday",
+        "priority": "normal",
+        "quote": "Sophie, can you chase the missing documents for those fourteen clients by Wednesday?",
+        "timestamp": "0:52",
+        "confidence": "high",
+        "flags": []
+      },
+      {
+        "id": "a2",
+        "task": "Send reminder emails and follow up by phone",
+        "owner": "Sophie Tran",
+        "due": "2026-10-27",
+        "dueText": "today",
+        "priority": "normal",
+        "quote": "Yes, I'll send the reminder emails today and follow up by phone on Wednesday.",
+        "timestamp": "1:04",
+        "confidence": "high",
+        "flags": []
+      },
+      {
+        "id": "a3",
+        "task": "Call Mr Patel and explain timeline in writing",
+        "owner": "David O'Neill",
+        "due": "2026-10-28",
+        "dueText": "tomorrow",
+        "priority": "normal",
+        "quote": "Will do, I'll call him tomorrow.",
+        "timestamp": "1:52",
+        "confidence": "high",
+        "flags": []
+      },
+      {
+        "id": "a4",
+        "task": "Book kickoff call with Coastal Joinery and request Xero invite",
+        "owner": "Liam Walsh",
+        "due": "2026-11-03",
+        "dueText": "next Tuesday",
+        "priority": "normal",
+        "quote": "Liam, can you book the kickoff call with Coastal Joinery for next Tuesday and ask for the Xero invite before then?",
+        "timestamp": "2:41",
+        "confidence": "high",
+        "flags": []
+      },
+      {
+        "id": "a5",
+        "task": "Send professional clearance letter to previous accountant",
+        "owner": "Unassigned",
+        "due": "No date",
+        "dueText": null,
+        "priority": "normal",
+        "quote": "Someone also needs to send the professional clearance letter to their previous accountant.",
+        "timestamp": "3:05",
+        "confidence": "medium",
+        "flags": [
+          "owner-unknown",
+          "date-unknown"
+        ]
+      },
+      {
+        "id": "a6",
+        "task": "Get quote from removalist",
+        "owner": "Liam Walsh",
+        "due": "No date",
+        "dueText": "end of next week",
+        "priority": "normal",
+        "quote": "Liam, please get a quote from the removalist by the end of next week.",
+        "timestamp": "4:22",
+        "confidence": "medium",
+        "flags": [
+          "date-unknown"
+        ]
+      },
+      {
+        "id": "a7",
+        "task": "Determine if new office has enough secure storage",
+        "owner": "Unassigned",
+        "due": "No date",
+        "dueText": null,
+        "priority": "normal",
+        "quote": "Let's find out before we sign off on the floor plan.",
+        "timestamp": "4:52",
+        "confidence": "medium",
+        "flags": [
+          "owner-unknown",
+          "date-unknown"
+        ]
+      }
+    ],
+    "people": [
+      "Margaret Chen",
+      "David O'Neill",
+      "Sophie Tran",
+      "Liam Walsh"
+    ],
+    "decisions": [
+      {
+        "text": "Keep the phones on the same numbers",
+        "quote": "We decided last month to keep the phones on the same numbers. That's still the plan, yes?",
+        "verified": true
+      }
+    ],
+    "openQuestions": [
+      {
+        "text": "Is there enough secure storage for paper files in the new office?",
+        "quote": "Do we know if the new office has enough secure storage for the paper files?",
+        "verified": true
+      }
+    ],
+    "email": {
+      "subject": "Follow\u2011up: Actions from Partners meeting",
+      "body": "Hi team,\n\nHere are the actions we need to finish.\n\nDavid O'Neill:\n- Call Mr Patel and explain the timeline in writing (due 2026\u201110\u201128).\n\nSophie Tran:\n- Chase missing documents for fourteen clients (due 2026\u201110\u201128).\n- Send reminder emails and follow up by phone (due 2026\u201110\u201127).\n\nLiam Walsh:\n- Book kickoff call with Coastal Joinery and request Xero invite (due 2026\u201111\u201103).\n- Get quote from removalist.\n\nNeeds an owner:\n- Send professional clearance letter to previous accountant.\n- Determine if new office has enough secure storage.\n\nDecisions:\n- Keep the phones on the same numbers.\n\nCheers, Josh"
+    },
+    "warnings": []
+  },
+  "cost": {
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "inputTokens": 1755,
+    "outputTokens": 1417,
+    "costUsd": 0,
+    "estPaidUsd": 0.00111
+  }
+}

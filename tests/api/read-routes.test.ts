@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { GET as getClients } from "@/app/api/clients/route";
-import { GET as getClientById } from "@/app/api/clients/[clientId]/route";
 import { GET as getTools } from "@/app/api/tools/route";
 import { GET as getToolBySlug } from "@/app/api/tools/[slug]/route";
 
@@ -30,26 +28,5 @@ describe("GET /api/tools/{slug}", () => {
     expect(await res.json()).toEqual({
       error: { code: "tool_not_found", message: expect.any(String) },
     });
-  });
-});
-
-describe("GET /api/clients", () => {
-  it("lists clients without email addresses", async () => {
-    const res = await getClients();
-    const body = await res.json();
-    expect(body.clients).toHaveLength(2);
-    expect(JSON.stringify(body)).not.toContain("email");
-  });
-
-  it("returns one client", async () => {
-    const res = await getClientById(req("/api/clients/leveric"), ctx({ clientId: "leveric" }));
-    expect(res.status).toBe(200);
-    expect((await res.json()).client.team).toHaveLength(4);
-  });
-
-  it("404s an unknown client", async () => {
-    const res = await getClientById(req("/api/clients/x"), ctx({ clientId: "x" }));
-    expect(res.status).toBe(404);
-    expect((await res.json()).error.code).toBe("client_not_found");
   });
 });
