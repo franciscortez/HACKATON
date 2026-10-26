@@ -3,7 +3,7 @@ import { StatusChip } from "@/components/workflow/StatusChip";
 import { listTools } from "@/features/registry";
 
 export default function Home() {
-  const tools = listTools();
+  const tools = listTools().filter((tool) => tool.status === "LIVE");
   return (
     <>
       <section className="bg-dark-grain px-pad py-16 text-white md:py-24">
@@ -29,7 +29,6 @@ export default function Home() {
         </div>
         <ol>
           {tools.map((tool, i) => {
-            const live = tool.status !== "PLANNED";
             const row = (
               <div className="grid grid-cols-[3rem_1fr] items-baseline gap-x-4 gap-y-2 py-5 sm:grid-cols-[4rem_1fr_auto_auto]">
                 <span className="label text-ink-soft">{tool.index}</span>
@@ -40,18 +39,14 @@ export default function Home() {
                 <span className="col-start-2 sm:col-start-auto">
                   <StatusChip value={tool.status} />
                 </span>
-                <span className="label hidden sm:inline">{live ? <>Open <span className="arrow">→</span></> : "Planned"}</span>
+                <span className="label hidden sm:inline">Open <span className="arrow">→</span></span>
               </div>
             );
             return (
               <li key={tool.slug} className="reveal border-b border-rule-l" style={{ ["--i" as string]: i }}>
-                {live ? (
-                  <Link href={`/tools/${tool.slug}`} className="arrow-link block transition-colors duration-300 hover:bg-white/40">
-                    {row}
-                  </Link>
-                ) : (
-                  <div className="opacity-70">{row}</div>
-                )}
+                <Link href={`/tools/${tool.slug}`} className="arrow-link block transition-colors duration-300 hover:bg-white/40">
+                  {row}
+                </Link>
               </li>
             );
           })}

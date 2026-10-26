@@ -42,4 +42,14 @@ Tool 03 takes one business URL and produces a sourced dossier, measured website 
 
 Apify needs `APIFY_API_KEY` in `.env.local`. The browser Actor is bounded to six pages, concurrency one, no retries and 120 seconds. US$0.10 is a target, not a guaranteed ceiling. Research has a four-minute total deadline. Failed AI generation retains signed collected research for 24 hours; Retry generation reuses it without another scraping charge. Screenshots expire after seven days or earlier Apify storage expiry.
 
-Run this worktree with `pnpm dev --port 3103`. Browser checks: `$env:PLAYWRIGHT_BASE_URL='http://localhost:3103'; pnpm test:e2e`. Existing Leveric history is retained; old demo reports are labelled and copied into workspace history when edited.
+Run locally with `pnpm dev` and open http://localhost:3000. Existing Leveric history is retained; old demo reports are labelled and copied into workspace history when edited.
+
+## Deployment and CI
+
+Vercel project `leveric-workbench` belongs to `bamcortezzs-projects` and deploys the GitHub repository's `main` branch. The homepage lists only LIVE tools. GitHub CI runs `pnpm typecheck` and `pnpm lint` on main pushes and pull requests; it does not run unit or E2E tests. Type-checking generates Next.js route types first, so no build is required in CI.
+
+Vercel uses Node 24, the pinned pnpm version and a frozen lockfile. Its build command runs lint and type-check before the production build; a failed check prevents the deployment from publishing. Groq, Gemini and Apify credentials are server-only Vercel variables, not GitHub CI secrets. Research retains its Local Ollama default: **select Auto on Vercel**, because the hosted app cannot reach Ollama running on your PC.
+
+Check the deployment commit and Ready status in Vercel before sharing its production URL. To recover from a bad release, use Vercel's rollback to a previously verified production deployment; for the first deployment, fix the failure before publishing. A rollback can pause automatic production domain assignment; explicitly promote the next verified deployment to resume it.
+
+Security controls, reporting and current limitations: [docs/SECURITY.md](docs/SECURITY.md).
