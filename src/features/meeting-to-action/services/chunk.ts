@@ -31,29 +31,29 @@ function hardSplit(line: string, maxChars: number): string[] {
   return parts;
 }
 
-const words = (s: string) => new Set(s.toLowerCase().match(/[a-z0-9]+/g) ?? []);
+const key = (s: string) => s.replace(/\s+/g, " ").trim().toLowerCase();
 
-function similar(a: string, b: string): boolean {
-  const wa = words(a);
-  const wb = words(b);
-  const shared = [...wa].filter((w) => wb.has(w)).length;
-  return shared / Math.max(wa.size, wb.size, 1) >= 0.6;
+/** The same words picked from the shared overlap line: equal quotes, or one inside the other. */
+function sameQuote(a: string, b: string): boolean {
+  const ka = key(a);
+  const kb = key(b);
+  return ka.length > 0 && kb.length > 0 && (ka === kb || ka.includes(kb) || kb.includes(ka));
 }
 
-const key = (s: string | null) => (s ?? "").trim().toLowerCase();
-
-/** Joins chunk results in order, dropping actions, decisions and questions repeated by the overlap. */
+/**
+ * Joins chunk results in order. Only the overlap between neighbouring chunks can repeat an
+ * item, so an item is dropped only when the previous chunk has one with the same quote.
+ * Items within one chunk are never merged: losing a real action is worse than a duplicate.
+ */
 export function mergeExtractions(parts: Extraction[]): Extraction {
   const merged: Extraction = { actions: [], decisions: [], openQuestions: [] };
-  for (const part of parts) {
-    for (const action of part.actions) {
-      const duplicate = merged.actions.some(
-        (m) => key(m.owner) === key(action.owner) && (key(m.quote) === key(action.quote) || similar(m.task, action.task)),
-      );
-      if (!duplicate) merged.actions.push(action);
-    }
-    for (const d of part.decisions) if (!merged.decisions.some((m) => key(m.quote) === key(d.quote))) merged.decisions.push(d);
-    for (const q of part.openQuestions) if (!merged.openQuestions.some((m) => key(m.quote) === key(q.quote))) merged.openQuestions.push(q);
-  }
+  parts.forEach((part, i) => {
+    const previous = parts[i - 1];
+    const repeats = <T extends { quote: string }>(item: T, earlier: T[] | undefined) =>
+      (earlier ?? []).some((e) => sameQuote(e.quote, item.quote));
+    merged.actions.push(...part.actions.filter((a) => !repeats(a, previous?.actions)));
+    merged.decisions.push(...part.decisions.filter((d) => !repeats(d, previous?.decisions)));
+    merged.openQuestions.push(...part.openQuestions.filter((q) => !repeats(q, previous?.openQuestions)));
+  });
   return merged;
 }

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense, type ComponentType } from "react";
 import { StatusChip } from "@/components/workflow/StatusChip";
-import { MeetingWorkbench } from "@/features/meeting-to-action/components/MeetingWorkbench";
+import { MeetingWorkbench } from "@/features/meeting-to-action";
 import { getTool, listTools } from "@/features/registry";
 
 /** Workbench UI per runnable tool. Planned tools show their summary only. */

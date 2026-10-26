@@ -16,6 +16,7 @@ import { toCsv, toEmailText, toMarkdown, toSlack } from "@/features/meeting-to-a
 import type { MeetingOutput } from "@/features/meeting-to-action/types";
 import { canExport, nextStatus } from "@/lib/approval";
 import { saveRun } from "@/services/runs";
+import { applyRegisterEdit } from "@/features/meeting-to-action/services/review";
 import { getUsage, incrementUsage } from "@/services/usage";
 import type { ApprovalStatus, CostNote as Cost } from "@/types/run";
 
@@ -38,6 +39,7 @@ export function MeetingWorkbench() {
   const [result, setOutput] = useState<MeetingOutput | null>(null);
   const [cost, setCost] = useState<Cost | null>(null);
   const [status, setStatus] = useState<ApprovalStatus>("DRAFT");
+  const [emailEdited, setEmailEdited] = useState(false);
   const [error, setError] = useState<RunError | null>(null);
   const runId = useRef("");
 
@@ -101,6 +103,7 @@ export function MeetingWorkbench() {
       setOutput(body.output);
       setCost(body.cost);
       setStatus("DRAFT");
+      setEmailEdited(false);
       persist(body.output, "DRAFT");
       setPhase("done");
     } catch {
@@ -182,10 +185,16 @@ export function MeetingWorkbench() {
               <p className="mt-1">Add names to the roster or paste a transcript with names. Owners are left unassigned.</p>
             </div>
           )}
-          <ActionRegisterTable actions={output.actions} roster={roster} onChange={(actions) => edit({ ...output, actions })} />
+          <ActionRegisterTable actions={output.actions} roster={roster} onChange={(actions) => edit(applyRegisterEdit(output, actions, { emailEdited, client, title: title || undefined }))} />
           <DecisionsList title="Decisions" items={output.decisions} />
           <DecisionsList title="Open questions" items={output.openQuestions} />
-          <EmailDraftEditor email={output.email} onChange={(email) => edit({ ...output, email })} />
+          <EmailDraftEditor
+            email={output.email}
+            onChange={(email) => {
+              setEmailEdited(true);
+              edit({ ...output, email });
+            }}
+          />
           <ExportMenu
             enabled={canExport(status)}
             options={[

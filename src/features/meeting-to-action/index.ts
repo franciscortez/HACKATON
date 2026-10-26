@@ -10,6 +10,7 @@ import { addCosts } from "@/lib/ai/cost";
 import type { ToolModule } from "@/types/tool";
 
 export type { MeetingInput, MeetingOutput } from "@/features/meeting-to-action/types";
+export { MeetingWorkbench } from "@/features/meeting-to-action/components/MeetingWorkbench";
 
 /** Today's date where the client is (all seeded clients are in Australia). */
 function localDate(now: Date): string {

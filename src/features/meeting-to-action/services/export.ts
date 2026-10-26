@@ -26,7 +26,9 @@ export function toMarkdown(output: CheckedOutput, client: ClientConfig): string 
 }
 
 function csvCell(value: string | null): string {
-  const text = value ?? "";
+  // Text from transcripts and models must never run as a spreadsheet formula.
+  const raw = value ?? "";
+  const text = /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
   return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 }
 

@@ -48,6 +48,12 @@ describe("parseTranscript: other formats", () => {
     expect(parsed.segments.every((s) => s.speaker === null)).toBe(true);
   });
 
+  it("reads '[m:ss] Name: text' lines, the format the paste box suggests", () => {
+    const parsed = parseTranscript("[0:13] Josh: Jaz, can you reply to Ruth by tomorrow night?\n[0:20] Jaz: Yes.");
+    expect(parsed.segments[0]).toEqual({ speaker: "Josh", timestamp: "0:13", text: "Jaz, can you reply to Ruth by tomorrow night?" });
+    expect(parsed.segments[1].speaker).toBe("Jaz");
+  });
+
   it("reads plain 'Name: text' lines as speakers", () => {
     const parsed = parseTranscript("Josh: Jaz, reply to Ruth by tomorrow night.\nJaz: On it.");
     expect(parsed.segments.map((s) => s.speaker)).toEqual(["Josh", "Jaz"]);

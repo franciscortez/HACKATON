@@ -1,6 +1,7 @@
 import { MockLanguageModelV4 } from "ai/test";
 import { describe, expect, it } from "vitest";
-import { draftEmail, templateEmail } from "@/features/meeting-to-action/services/draft-email";
+import { draftEmail } from "@/features/meeting-to-action/services/draft-email";
+import { templateEmail } from "@/features/meeting-to-action/services/email-template";
 import { toCsv, toEmailText, toMarkdown, toSlack } from "@/features/meeting-to-action/services/export";
 import type { Action, MeetingOutput } from "@/features/meeting-to-action/types";
 import type { ProviderEntry } from "@/lib/ai/provider";
@@ -38,6 +39,15 @@ describe("toCsv", () => {
     const csv = toCsv(output);
     expect(csv.split("\r\n")[0]).toBe("task,owner,due,priority,quote,timestamp");
     expect(csv).toContain('"Fix CI, then ""ship""\nsoon",Unassigned,No date');
+  });
+});
+
+describe("toCsv formula safety", () => {
+  it("prefixes cells that a spreadsheet would run as a formula", () => {
+    const risky = { ...output, actions: [action({ task: "=HYPERLINK(\"http://x\")", quote: "+1 call", owner: "Jaz" })] };
+    const row = toCsv(risky).split("\r\n")[1];
+    expect(row.startsWith(`"'=HYPERLINK`)).toBe(true);
+    expect(row).toContain("'+1 call");
   });
 });
 

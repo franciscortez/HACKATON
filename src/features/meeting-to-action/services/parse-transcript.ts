@@ -78,16 +78,21 @@ function parseCues(text: string): Segment[] {
   return segments;
 }
 
+const PLAIN_TIMESTAMP = /^\[(\d+(?::\d{2}){1,2})\]\s*(.*)$/;
+
 function parsePlain(text: string): Segment[] {
   return text
     .split("\n")
     .map((l) => l.trim())
     .filter(Boolean)
     .map((line) => {
-      const named = NAME_PREFIX.exec(line);
+      const stamped = PLAIN_TIMESTAMP.exec(line);
+      const timestamp = stamped ? stamped[1] : null;
+      const rest = stamped ? stamped[2] : line;
+      const named = NAME_PREFIX.exec(rest);
       return named
-        ? { speaker: named[1].trim(), timestamp: null, text: named[2].trim() }
-        : { speaker: null, timestamp: null, text: line };
+        ? { speaker: named[1].trim(), timestamp, text: named[2].trim() }
+        : { speaker: null, timestamp, text: rest };
     });
 }
 

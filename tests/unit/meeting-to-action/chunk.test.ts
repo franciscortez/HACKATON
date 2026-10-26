@@ -46,6 +46,21 @@ describe("mergeExtractions", () => {
     expect(merged.decisions).toHaveLength(1);
   });
 
+  it("keeps distinct same-owner tasks with similar wording, in one chunk and across chunks", () => {
+    const merged = mergeExtractions([
+      { actions: [act("Send invoice to Acme", "Jaz", "invoice Acme"), act("Send invoice to Beta", "Jaz", "invoice Beta")], decisions: [], openQuestions: [] },
+      { actions: [act("Send invoice to Gamma", "Jaz", "invoice Gamma")], decisions: [], openQuestions: [] },
+    ]);
+    expect(merged.actions).toHaveLength(3);
+  });
+
+  it("keeps similar unassigned tasks that come from different quotes", () => {
+    const merged = mergeExtractions([
+      { actions: [act("Book the venue", null, "book the venue"), act("Book the caterer", null, "book the caterer")], decisions: [], openQuestions: [] },
+    ]);
+    expect(merged.actions).toHaveLength(2);
+  });
+
   it("keeps the same task for different owners", () => {
     const merged = mergeExtractions([
       { actions: [act("Send login steps", "Yohan", "a")], decisions: [], openQuestions: [] },
