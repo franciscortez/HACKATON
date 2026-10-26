@@ -15,7 +15,7 @@ If a secret is exposed, revoke or rotate it at its provider, update Vercel, rede
 ## Data and trust boundaries
 
 - Cloud AI can send submitted transcripts and website extracts to Groq or Gemini. Do not submit confidential material without appropriate permission. Local-only workspace policy blocks cloud AI and new crawling.
-- Local Ollama runs on the application server, not the visitor's computer. It is unavailable on Vercel unless a separately hosted endpoint is configured. Research retains its local default; select Auto explicitly on Vercel.
+- Ollama runs at the server-configured endpoint, not automatically on the visitor's computer. Vercel can connect to the owner's PC through the authenticated ngrok tunnel. Requests traverse Vercel and ngrok; this is not a guarantee that data stays on the PC. Keep the tunnel password and OLLAMA_AUTHORIZATION server-only and separate from the ngrok account token. The public app's lack of authentication still allows users to consume model capacity through its run API.
 - URL research sends the requested URL to Apify and collects public website content and screenshots. Website content is untrusted input; source claims and generated hypotheses require human review.
 - Saved reports and recovery snapshots live in browser storage. Anyone with access to that browser profile can read them; clear stored data on shared devices. Signed recovery payloads provide integrity, not encryption, and expire after 24 hours.
 - URL and redirect checks restrict private destinations. These checks do not prove connection-level DNS rebinding protection inside Apify's proxy network. Preview access is restricted and signed; screenshots expire after seven days or earlier storage expiry.

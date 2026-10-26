@@ -66,6 +66,7 @@ export function availableProviders(policy: Settings["dataPolicy"], env: Env = pr
       createOpenAICompatible({
         name: "ollama",
         baseURL: env.OLLAMA_BASE_URL ?? "http://127.0.0.1:11434/v1",
+        headers: env.OLLAMA_AUTHORIZATION ? { Authorization: env.OLLAMA_AUTHORIZATION } : undefined,
         supportsStructuredOutputs: true,
       })(ollamaModel),
   });

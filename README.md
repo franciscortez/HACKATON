@@ -48,9 +48,21 @@ Run locally with `pnpm dev` and open http://localhost:3000. Existing Leveric his
 
 Production: https://leveric-workbench.vercel.app.
 
+### Hosted Ollama through ngrok
+
+Vercel can use the PC's Ollama through an authenticated HTTPS ngrok endpoint. Configure server-only `OLLAMA_BASE_URL` (endpoint plus `/v1`), `OLLAMA_MODEL`, and `OLLAMA_AUTHORIZATION` (the complete Basic authorization value). Both the research native adapter and shared AI adapter send this header. Leaving it unset preserves ordinary local Ollama access.
+
+Keep the PC awake and Ollama and ngrok running. The tunnel uses an independent password, disables local request inspection, rewrites the upstream Host to localhost and restricts model-management endpoints. Its secret policy lives in ignored `.superpowers/ngrok/ollama-policy.json`; never commit or share it. Restart the configured tunnel from this repository with:
+
+```powershell
+ngrok http http://127.0.0.1:11434 --traffic-policy-file .superpowers/ngrok/ollama-policy.json --inspect=false
+```
+
+Do not run a duplicate tunnel while the background agent is active. If the endpoint hostname changes, update `OLLAMA_BASE_URL` in Vercel and redeploy. Select Local Ollama on the hosted research page to use this tunnel; Auto remains available for cloud generation. Requests travel through Vercel and ngrok, so this is not processing confined to the PC.
+
 Vercel project `leveric-workbench` belongs to `bamcortezzs-projects` and deploys the GitHub repository's `main` branch. The homepage lists only LIVE tools. GitHub CI runs `pnpm typecheck` and `pnpm lint` on main pushes and pull requests; it does not run unit or E2E tests. Type-checking generates Next.js route types first, so no build is required in CI.
 
-Vercel uses Node 24, the pinned pnpm version and a frozen lockfile. Its build command runs lint and type-check before the production build; a failed check prevents the deployment from publishing. Groq, Gemini and Apify credentials are server-only Vercel variables, not GitHub CI secrets. Research retains its Local Ollama default: **select Auto on Vercel**, because the hosted app cannot reach Ollama running on your PC.
+Vercel uses Node 24, the pinned pnpm version and a frozen lockfile. Its build command runs lint and type-check before the production build; a failed check prevents the deployment from publishing. Provider credentials are server-only Vercel variables, not GitHub CI secrets. Research retains its Local Ollama default; the configured tunnel must be running, or select Auto for cloud providers.
 
 Check the deployment commit and Ready status in Vercel before sharing its production URL. To recover from a bad release, use Vercel's rollback to a previously verified production deployment; for the first deployment, fix the failure before publishing. A rollback can pause automatic production domain assignment; explicitly promote the next verified deployment to resume it.
 
