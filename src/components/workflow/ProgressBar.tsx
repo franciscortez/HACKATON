@@ -1,7 +1,7 @@
 import { cx } from "@/lib/utils";
 
 /** Real run progress in a compact panel: one bar segment per step, the current one animated. */
-export function ProgressBar({ done, total, label, elapsed }: { done: number; total: number; label: string; elapsed: number }) {
+export function ProgressBar({ done, total, label }: { done: number; total: number; label: string }) {
   const percent = total > 0 ? Math.round((done / total) * 100) : 0;
   return (
     <div
@@ -22,7 +22,6 @@ export function ProgressBar({ done, total, label, elapsed }: { done: number; tot
         </div>
         <p className="shrink-0 text-right font-mono tabular-nums">
           <span className="text-2xl font-medium tracking-[-0.04em]">{percent}%</span>
-          <span className="label ml-2 text-ink-soft">{elapsed}s</span>
         </p>
       </div>
       <div className="mt-3 flex gap-0.5" aria-hidden="true">

@@ -33,7 +33,7 @@ test("any transcript to an approved export", async ({ page }) => {
   await expect(page.getByLabel("Action register").getByRole("listitem").first()).toBeVisible();
   await expect(page.getByLabel("Transcript text")).toBeHidden();
   await expect(status(page)).toHaveText("DRAFT");
-  await expect(page.getByRole("button", { name: "Download CSV" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "CSV", exact: true })).toBeDisabled();
 
   await page.getByLabel("Owner for task 1", { exact: true }).selectOption("Unassigned");
   await expect(status(page)).toHaveText("EDITED");
@@ -42,9 +42,10 @@ test("any transcript to an approved export", async ({ page }) => {
   await expect(status(page)).toHaveText("APPROVED");
 
   const download = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Download CSV" }).click();
+  await page.getByRole("button", { name: "CSV", exact: true }).click();
   expect((await download).suggestedFilename()).toMatch(/^actions-.*\.csv$/);
 
+  await page.getByRole("tab", { name: /Email/ }).click();
   await page.getByLabel("Email subject").fill("Partners meeting actions");
   await expect(status(page)).toHaveText("EDITED");
 

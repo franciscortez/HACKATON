@@ -8,6 +8,7 @@ import { ExportMenu } from "@/components/workflow/ExportMenu";
 import { ProgressBar } from "@/components/workflow/ProgressBar";
 import { SourcePanel } from "@/components/workflow/SourcePanel";
 import { Stepper } from "@/components/workflow/Stepper";
+import { Tabs } from "@/components/workflow/Tabs";
 import { ActionRegisterTable } from "@/features/meeting-to-action/components/ActionRegisterTable";
 import { DecisionsList } from "@/features/meeting-to-action/components/DecisionsList";
 import { EmailDraftEditor } from "@/features/meeting-to-action/components/EmailDraftEditor";
@@ -23,6 +24,7 @@ import type { ApprovalStatus, CostNote as Cost } from "@/types/run";
 import type { RunProgress } from "@/types/tool";
 
 type Phase = "source" | "running" | "review";
+type ReviewTab = "actions" | "decisions" | "questions" | "email";
 interface RunError {
   code: string;
   message: string;
@@ -57,22 +59,18 @@ export function MeetingWorkbench() {
   const [meetingDate, setMeetingDate] = useState("");
   const [phase, setPhase] = useState<Phase>("source");
   const [progress, setProgress] = useState<RunProgress>({ done: 0, total: 1, label: "Starting" });
-  const [elapsed, setElapsed] = useState(0);
   const [output, setOutput] = useState<MeetingOutput | null>(null);
   const [cost, setCost] = useState<Cost | null>(null);
   const [status, setStatus] = useState<ApprovalStatus>("DRAFT");
   const [emailEdited, setEmailEdited] = useState(false);
   const [error, setError] = useState<RunError | null>(null);
+  const [tab, setTab] = useState<ReviewTab>("actions");
   const runId = useRef("");
   const top = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (phase !== "running") return;
-    const started = Date.now();
-    const timer = setInterval(() => setElapsed(Math.round((Date.now() - started) / 1000)), 1000);
-    progressRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    return () => clearInterval(timer);
+    if (phase === "running") progressRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [phase]);
 
   const scrollTop = () => top.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -108,7 +106,6 @@ export function MeetingWorkbench() {
 
   async function run() {
     setPhase("running");
-    setElapsed(0);
     setProgress({ done: 0, total: 1, label: "Starting" });
     setError(null);
     let failed: RunError | null = null;
@@ -131,6 +128,7 @@ export function MeetingWorkbench() {
             setCost(event.cost);
             setStatus("DRAFT");
             setEmailEdited(false);
+            setTab("actions");
             persist(event.output, "DRAFT");
           }
         });
@@ -185,7 +183,7 @@ export function MeetingWorkbench() {
               </fieldset>
               <div ref={progressRef} className="flex-1">
                 {running ? (
-                  <ProgressBar done={progress.done} total={progress.total} label={progress.label} elapsed={elapsed} />
+                  <ProgressBar done={progress.done} total={progress.total} label={progress.label} />
                 ) : (
                   <TranscriptCheck transcript={transcript} />
                 )}
@@ -210,45 +208,64 @@ export function MeetingWorkbench() {
 
       {phase === "review" && output && (
         <div className="reveal mt-6">
-          <div className="mb-8 flex flex-wrap items-baseline justify-between gap-3 border-b border-rule-l pb-4">
-            <p className="label text-ink-soft">
-              Source · {sourceName ?? "Pasted text"} · {transcript.length.toLocaleString("en-AU")} characters
-              {title ? ` · ${title}` : ""}
+          <div className="mb-6 flex flex-wrap items-baseline justify-between gap-3">
+            <p className="font-mono text-xs text-ink-soft">
+              {title ? `${title} · ` : ""}
+              {sourceName ?? "Pasted text"} · {transcript.length.toLocaleString("en-AU")} characters
             </p>
             <button type="button" onClick={startAgain} className="label arrow-link text-ink hover:text-blue">
               New transcript <span className="arrow">→</span>
             </button>
           </div>
           {output.warnings.includes("no-speakers") && (
-            <div role="alert" className="mb-6 border border-warn bg-white p-4">
-              <p className="label text-warn">No speaker names found</p>
-              <p className="mt-1">Only people named in the text can own tasks; the rest are left unassigned.</p>
-            </div>
+            <p role="alert" className="mb-4 border-l-2 border-warn pl-3 text-sm">
+              No speaker names found. Only people named in the text can own tasks; the rest are left unassigned.
+            </p>
           )}
-          <ActionRegisterTable
-            actions={output.actions}
-            people={output.people}
-            onChange={(actions) => edit(applyRegisterEdit(output, actions, { emailEdited, settings, title: title || undefined }))}
-          />
-          <DecisionsList title="Decisions" items={output.decisions} />
-          <DecisionsList title="Open questions" items={output.openQuestions} />
-          <EmailDraftEditor
-            email={output.email}
-            onChange={(email) => {
-              setEmailEdited(true);
-              edit({ ...output, email });
-            }}
-          />
-          <ExportMenu
-            enabled={canExport(status)}
-            options={[
-              { label: "Copy Markdown", build: () => toMarkdown(output) },
-              { label: "Download CSV", build: () => toCsv(output), fileName: `actions-${meetingDate || today()}.csv`, mime: "text/csv" },
-              { label: "Copy for Slack", build: () => toSlack(output) },
-              { label: "Copy email", build: () => toEmailText(output) },
+          <Tabs
+            active={tab}
+            onChange={(id) => setTab(id as ReviewTab)}
+            tabs={[
+              { id: "actions", label: "Actions", count: output.actions.length },
+              { id: "decisions", label: "Decisions", count: output.decisions.length },
+              { id: "questions", label: "Questions", count: output.openQuestions.length },
+              { id: "email", label: "Email" },
             ]}
-          />
-          <ApprovalBar status={status} onApprove={approve}>
+          >
+            {tab === "actions" && (
+              <ActionRegisterTable
+                actions={output.actions}
+                people={output.people}
+                onChange={(actions) => edit(applyRegisterEdit(output, actions, { emailEdited, settings, title: title || undefined }))}
+              />
+            )}
+            {tab === "decisions" && <DecisionsList items={output.decisions} empty="No decisions were recorded in this meeting." />}
+            {tab === "questions" && <DecisionsList items={output.openQuestions} empty="No open questions were left in this meeting." />}
+            {tab === "email" && (
+              <EmailDraftEditor
+                email={output.email}
+                onChange={(email) => {
+                  setEmailEdited(true);
+                  edit({ ...output, email });
+                }}
+              />
+            )}
+          </Tabs>
+          <ApprovalBar
+            status={status}
+            onApprove={approve}
+            actions={
+              <ExportMenu
+                enabled={canExport(status)}
+                options={[
+                  { label: "Markdown", build: () => toMarkdown(output) },
+                  { label: "CSV", build: () => toCsv(output), fileName: `actions-${meetingDate || today()}.csv`, mime: "text/csv" },
+                  { label: "Slack", build: () => toSlack(output) },
+                  { label: "Email", build: () => toEmailText(output) },
+                ]}
+              />
+            }
+          >
             {cost && <CostNote cost={cost} />}
           </ApprovalBar>
         </div>
